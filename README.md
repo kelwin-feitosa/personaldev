@@ -176,7 +176,7 @@ Representará o estado do usuário em determinado momento, incluindo informaçõ
 ### Backend
 
 - Java 21
-- Spring Boot 4
+- Spring Boot 4.1.1
 - Spring Data JPA
 - Spring Web MVC
 - Bean Validation
@@ -194,12 +194,19 @@ Representará o estado do usuário em determinado momento, incluindo informaçõ
 - JUnit 5
 - Mockito
 - Spring Boot Test
+- MockMvc
+
+### Documentação
+
+- OpenAPI
+- Swagger UI
 
 ### Ferramentas
 
 - Maven
 - Git
 - GitHub
+- GitHub Actions
 
 ### Futuramente
 
@@ -278,7 +285,7 @@ As migrations ficam em:
 src/main/resources/db/migration/
 ```
 
-Exemplo:
+Migration inicial:
 
 ```text
 V1__create_initial_schema.sql
@@ -298,12 +305,75 @@ O Hibernate apenas verifica se as entidades estão compatíveis com o banco exis
 
 ---
 
+## 📖 Documentação da API
+
+A API utiliza OpenAPI e Swagger UI para documentação e testes manuais dos endpoints.
+
+Com a aplicação em execução:
+
+```text
+http://localhost:8080/swagger-ui.html
+```
+
+A especificação OpenAPI está disponível em:
+
+```text
+http://localhost:8080/v3/api-docs
+```
+
+### Endpoints atuais
+
+#### Users
+
+```text
+POST   /users
+GET    /users
+GET    /users/{id}
+```
+
+#### Goals
+
+```text
+POST   /goals
+GET    /goals
+GET    /goals/{id}
+```
+
+#### Activities
+
+```text
+POST   /activities
+GET    /activities
+GET    /activities/{id}
+```
+
+---
+
+## ⚠️ Validação e tratamento de erros
+
+As requisições utilizam Bean Validation através de anotações como:
+
+- `@NotBlank`
+- `@NotNull`
+- `@Email`
+- `@Positive`
+
+O projeto possui tratamento global para:
+
+- Recursos não encontrados → `404 Not Found`;
+- Recursos duplicados → `409 Conflict`;
+- Erros de validação → `400 Bad Request`;
+- Erros inesperados → `500 Internal Server Error`.
+
+---
+
 ## 🚀 Como executar
 
 ### 1. Clonar o projeto
 
 ```bash
 git clone <URL_DO_REPOSITORIO>
+
 cd personaldev
 ```
 
@@ -352,12 +422,57 @@ Durante a inicialização, o Flyway executará as migrations pendentes e o Hiber
 
 ## 🧪 Testes
 
-Os testes serão desenvolvidos junto com as funcionalidades da aplicação.
+Os testes são desenvolvidos junto com as funcionalidades da aplicação.
 
-A execução completa dos testes pode ser feita através do Maven:
+A estrutura atual inclui testes para os Services e Controllers:
+
+```text
+src/test/java/com/kelwin/personaldev/
+├── application/
+│   └── service/
+│       ├── UserServiceTest
+│       ├── GoalServiceTest
+│       └── ActivityServiceTest
+│
+└── presentation/
+    └── controller/
+        ├── UserControllerTest
+        ├── GoalControllerTest
+        └── ActivityControllerTest
+```
+
+### Service Tests
+
+Os testes dos Services verificam principalmente:
+
+- Criação de recursos;
+- Busca de recursos;
+- Recursos inexistentes;
+- Recursos duplicados;
+- Relacionamentos entre entidades.
+
+### Controller Tests
+
+Os testes dos Controllers utilizam `MockMvc` para verificar:
+
+- Requisições HTTP;
+- Status HTTP;
+- JSON de resposta;
+- Validação das requisições;
+- Tratamento de exceções.
+
+Os testes das camadas são isolados para evitar testar a mesma responsabilidade mais de uma vez.
+
+Para executar os testes:
 
 ```bash
 ./mvnw test
+```
+
+Para executar o ciclo completo de build:
+
+```bash
+./mvnw verify
 ```
 
 ---
@@ -376,12 +491,16 @@ A execução completa dos testes pode ser feita através do Maven:
 - [x] Entidade `User`
 - [x] Entidade `Goal`
 - [x] Entidade `Activity`
-- [ ] Repositories
-- [ ] Services
-- [ ] DTOs
-- [ ] Controllers
-- [ ] Validações
-- [ ] Testes
+- [x] Repositories
+- [x] Services
+- [x] DTOs
+- [x] Controllers
+- [x] Validações
+- [x] Tratamento global de exceções
+- [x] Swagger/OpenAPI
+- [x] Testes dos Services
+- [x] Testes dos Controllers
+- [x] GitHub Actions
 
 ### MVP 2 — Registro e acompanhamento
 
@@ -457,4 +576,14 @@ Atualmente o projeto possui:
 - Profile de desenvolvimento;
 - Flyway configurado;
 - Migration inicial;
-- Validação do schema através do Hibernate.
+- Validação do schema através do Hibernate;
+- Repositories;
+- Services;
+- DTOs;
+- Controllers REST;
+- Validação das requisições;
+- Tratamento global de exceções;
+- Documentação com Swagger/OpenAPI;
+- Testes automatizados dos Services;
+- Testes automatizados dos Controllers;
+- Pipeline de CI com GitHub Actions.
