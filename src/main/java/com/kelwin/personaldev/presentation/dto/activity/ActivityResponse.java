@@ -1,11 +1,12 @@
 package com.kelwin.personaldev.presentation.dto.activity;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 public record ActivityResponse(
-    Long id,
-    Long userId,
-    Long goalId,
+    UUID id,
+    UUID userId,
+    UUID goalId,
     String title,
     String description,
     Integer estimatedDuration,

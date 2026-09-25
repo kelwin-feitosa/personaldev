@@ -14,6 +14,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -23,6 +24,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(ActivityController.class)
 @Import(GlobalExceptionHandler.class)
 class ActivityControllerTest {
+
+    private static final UUID USER_ID =
+            UUID.fromString("11111111-1111-1111-1111-111111111111");
+
+    private static final UUID GOAL_ID =
+            UUID.fromString("22222222-2222-2222-2222-222222222222");
+
+    private static final UUID ACTIVITY_ID =
+            UUID.fromString("33333333-3333-3333-3333-333333333333");
 
     @Autowired
     private MockMvc mockMvc;
@@ -47,14 +57,14 @@ class ActivityControllerTest {
                                     "estimatedDuration": 60,
                                     "difficulty": 3,
                                     "priority": 1,
-                                    "goalId": 1,
-                                    "userId": 1
+                                    "goalId": "22222222-2222-2222-2222-222222222222",
+                                    "userId": "11111111-1111-1111-1111-111111111111"
                                 }
                                 """))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").value(1))
-                .andExpect(jsonPath("$.userId").value(1))
-                .andExpect(jsonPath("$.goalId").value(1))
+                .andExpect(jsonPath("$.id").value(ACTIVITY_ID.toString()))
+                .andExpect(jsonPath("$.userId").value(USER_ID.toString()))
+                .andExpect(jsonPath("$.goalId").value(GOAL_ID.toString()))
                 .andExpect(jsonPath("$.title").value("Estudar Collections"))
                 .andExpect(jsonPath("$.description").value("Revisar List, Set e Map"))
                 .andExpect(jsonPath("$.estimatedDuration").value(60))
@@ -71,8 +81,8 @@ class ActivityControllerTest {
         ActivityResponse activity1 = createActivityResponse();
 
         ActivityResponse activity2 = new ActivityResponse(
-                2L,
-                1L,
+                UUID.fromString("44444444-4444-4444-4444-444444444444"),
+                USER_ID,
                 null,
                 "Estudar Spring",
                 "Revisar Spring Boot",
@@ -91,9 +101,9 @@ class ActivityControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$.length()").value(2))
-                .andExpect(jsonPath("$[0].id").value(1))
+                .andExpect(jsonPath("$[0].id").value(ACTIVITY_ID.toString()))
                 .andExpect(jsonPath("$[0].title").value("Estudar Collections"))
-                .andExpect(jsonPath("$[1].id").value(2))
+                .andExpect(jsonPath("$[1].id").value("44444444-4444-4444-4444-444444444444"))
                 .andExpect(jsonPath("$[1].title").value("Estudar Spring"));
     }
 
@@ -102,14 +112,14 @@ class ActivityControllerTest {
 
         ActivityResponse response = createActivityResponse();
 
-        when(activityService.findById(1L))
+        when(activityService.findById(ACTIVITY_ID))
                 .thenReturn(response);
 
-        mockMvc.perform(get("/activities/1"))
+        mockMvc.perform(get("/activities/" + ACTIVITY_ID))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(1))
-                .andExpect(jsonPath("$.userId").value(1))
-                .andExpect(jsonPath("$.goalId").value(1))
+                .andExpect(jsonPath("$.id").value(ACTIVITY_ID.toString()))
+                .andExpect(jsonPath("$.userId").value(USER_ID.toString()))
+                .andExpect(jsonPath("$.goalId").value(GOAL_ID.toString()))
                 .andExpect(jsonPath("$.title").value("Estudar Collections"))
                 .andExpect(jsonPath("$.active").value(true));
     }
@@ -117,12 +127,15 @@ class ActivityControllerTest {
     @Test
     void shouldReturnNotFoundWhenActivityDoesNotExist() throws Exception {
 
-        when(activityService.findById(999L))
+        UUID nonExistentActivityId =
+                UUID.fromString("99999999-9999-9999-9999-999999999999");
+
+        when(activityService.findById(nonExistentActivityId))
                 .thenThrow(
                         new ResourceNotFoundException("Activity not found")
                 );
 
-        mockMvc.perform(get("/activities/999"))
+        mockMvc.perform(get("/activities/" + nonExistentActivityId))
                 .andExpect(status().isNotFound())
                 .andExpect(content().string("Activity not found"));
     }
@@ -149,9 +162,9 @@ class ActivityControllerTest {
     private ActivityResponse createActivityResponse() {
 
         return new ActivityResponse(
-                1L,
-                1L,
-                1L,
+                ACTIVITY_ID,
+                USER_ID,
+                GOAL_ID,
                 "Estudar Collections",
                 "Revisar List, Set e Map",
                 60,

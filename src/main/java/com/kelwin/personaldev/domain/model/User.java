@@ -1,6 +1,7 @@
 package com.kelwin.personaldev.domain.model;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -26,8 +27,8 @@ import lombok.Setter;
 public class User {
 
     @Id 
-    @GeneratedValue (strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue
+    private UUID id;
 
     @Column (nullable = false)
     private String name;

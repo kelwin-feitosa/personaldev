@@ -16,6 +16,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -23,6 +24,12 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class GoalServiceTest {
+
+    private static final UUID USER_ID =
+            UUID.fromString("11111111-1111-1111-1111-111111111111");
+
+    private static final UUID GOAL_ID =
+            UUID.fromString("22222222-2222-2222-2222-222222222222");
 
     @Mock
     private GoalRepository goalRepository;
@@ -48,8 +55,8 @@ class GoalServiceTest {
         GoalResponse response = goalService.create(request);
 
         assertNotNull(response);
-        assertEquals(1L, response.id());
-        assertEquals(1L, response.userId());
+        assertEquals(GOAL_ID, response.id());
+        assertEquals(USER_ID, response.userId());
         assertEquals("Aprender Java", response.title());
         assertEquals(GoalStatus.ACTIVE, response.status());
         assertEquals(1, response.priority());
@@ -93,10 +100,10 @@ class GoalServiceTest {
         User user = createUser();
         Goal goal = createGoal(user);
 
-        when(goalRepository.findById(1L))
+        when(goalRepository.findById(GOAL_ID))
                 .thenReturn(Optional.of(goal));
 
-        GoalResponse response = goalService.findById(1L);
+        GoalResponse response = goalService.findById(GOAL_ID);
 
         assertEquals(goal.getId(), response.id());
         assertEquals(goal.getTitle(), response.title());
@@ -105,18 +112,18 @@ class GoalServiceTest {
 
     @Test
     void shouldThrowExceptionWhenGoalDoesNotExist() {
-        when(goalRepository.findById(1L))
+        when(goalRepository.findById(GOAL_ID))
                 .thenReturn(Optional.empty());
 
         assertThrows(
                 ResourceNotFoundException.class,
-                () -> goalService.findById(1L)
+                () -> goalService.findById(GOAL_ID)
         );
     }
 
     private User createUser() {
         return User.builder()
-                .id(1L)
+                .id(USER_ID)
                 .name("Kelwin")
                 .email("kelwin@example.com")
                 .build();
@@ -129,13 +136,13 @@ class GoalServiceTest {
                 GoalStatus.ACTIVE,
                 1,
                 null,
-                1L
+                USER_ID
         );
     }
 
     private Goal createGoal(User user) {
         return Goal.builder()
-                .id(1L)
+                .id(GOAL_ID)
                 .user(user)
                 .title("Aprender Java")
                 .description("Estudar Java avançado")

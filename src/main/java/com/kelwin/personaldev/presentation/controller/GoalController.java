@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/goals")
@@ -39,7 +40,7 @@ public class GoalController {
 
     @GetMapping("/{id}")
     @Operation(summary = "Find a goal by ID")
-    public ResponseEntity<GoalResponse> findById(@PathVariable Long id) {
+    public ResponseEntity<GoalResponse> findById(@PathVariable UUID id) {
         return ResponseEntity.ok(goalService.findById(id));
     }
 }

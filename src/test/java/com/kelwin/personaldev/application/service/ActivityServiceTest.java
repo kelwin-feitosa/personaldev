@@ -17,6 +17,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -24,6 +25,15 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class ActivityServiceTest {
+
+    private static final UUID USER_ID =
+            UUID.fromString("11111111-1111-1111-1111-111111111111");
+
+    private static final UUID GOAL_ID =
+            UUID.fromString("22222222-2222-2222-2222-222222222222");
+
+    private static final UUID ACTIVITY_ID =
+            UUID.fromString("33333333-3333-3333-3333-333333333333");
 
     @Mock
     private ActivityRepository activityRepository;
@@ -52,8 +62,8 @@ class ActivityServiceTest {
         ActivityResponse response = activityService.create(request);
 
         assertNotNull(response);
-        assertEquals(1L, response.id());
-        assertEquals(1L, response.userId());
+        assertEquals(ACTIVITY_ID, response.id());
+        assertEquals(USER_ID, response.userId());
         assertNull(response.goalId());
         assertEquals("Estudar Collections", response.title());
         assertEquals(60, response.estimatedDuration());
@@ -81,9 +91,9 @@ class ActivityServiceTest {
         ActivityResponse response = activityService.create(request);
 
         assertNotNull(response);
-        assertEquals(1L, response.id());
-        assertEquals(1L, response.userId());
-        assertEquals(1L, response.goalId());
+        assertEquals(ACTIVITY_ID, response.id());
+        assertEquals(USER_ID, response.userId());
+        assertEquals(GOAL_ID, response.goalId());
         assertEquals("Estudar Collections", response.title());
     }
 
@@ -143,10 +153,10 @@ class ActivityServiceTest {
         User user = createUser();
         Activity activity = createActivity(user, null);
 
-        when(activityRepository.findById(1L))
+        when(activityRepository.findById(ACTIVITY_ID))
                 .thenReturn(Optional.of(activity));
 
-        ActivityResponse response = activityService.findById(1L);
+        ActivityResponse response = activityService.findById(ACTIVITY_ID);
 
         assertEquals(activity.getId(), response.id());
         assertEquals(activity.getTitle(), response.title());
@@ -156,18 +166,18 @@ class ActivityServiceTest {
 
     @Test
     void shouldThrowExceptionWhenActivityDoesNotExist() {
-        when(activityRepository.findById(1L))
+        when(activityRepository.findById(ACTIVITY_ID))
                 .thenReturn(Optional.empty());
 
         assertThrows(
                 ResourceNotFoundException.class,
-                () -> activityService.findById(1L)
+                () -> activityService.findById(ACTIVITY_ID)
         );
     }
 
     private User createUser() {
         return User.builder()
-                .id(1L)
+                .id(USER_ID)
                 .name("Kelwin")
                 .email("kelwin@example.com")
                 .build();
@@ -175,7 +185,7 @@ class ActivityServiceTest {
 
     private Goal createGoal(User user) {
         return Goal.builder()
-                .id(1L)
+                .id(GOAL_ID)
                 .user(user)
                 .title("Aprender Java")
                 .build();
@@ -183,7 +193,7 @@ class ActivityServiceTest {
 
     private Activity createActivity(User user, Goal goal) {
         return Activity.builder()
-                .id(1L)
+                .id(ACTIVITY_ID)
                 .user(user)
                 .goal(goal)
                 .title("Estudar Collections")
@@ -203,7 +213,7 @@ class ActivityServiceTest {
                 3,
                 1,
                 null,
-                1L
+                USER_ID
         );
     }
 
@@ -214,8 +224,8 @@ class ActivityServiceTest {
                 60,
                 3,
                 1,
-                1L,
-                1L
+                GOAL_ID,
+                USER_ID
         );
     }
 }

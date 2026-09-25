@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/activities")
@@ -39,7 +40,7 @@ public class ActivityController {
 
     @GetMapping("/{id}")
     @Operation(summary = "Find an activity by ID")
-    public ResponseEntity<ActivityResponse> findById(@PathVariable Long id) {
+    public ResponseEntity<ActivityResponse> findById(@PathVariable UUID id) {
         return ResponseEntity.ok(activityService.findById(id));
     }
 }

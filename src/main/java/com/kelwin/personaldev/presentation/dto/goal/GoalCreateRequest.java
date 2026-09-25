@@ -1,6 +1,7 @@
 package com.kelwin.personaldev.presentation.dto.goal;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 import com.kelwin.personaldev.domain.model.GoalStatus;
 
@@ -24,7 +25,7 @@ public record GoalCreateRequest(
     LocalDate deadline,
 
     @NotNull
-    Long userId
+    UUID userId
 ) {
 
 }

@@ -14,6 +14,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -21,6 +22,9 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class UserServiceTest {
+
+    private static final UUID USER_ID =
+            UUID.fromString("11111111-1111-1111-1111-111111111111");
 
     @Mock
     private UserRepository repository;
@@ -39,7 +43,7 @@ class UserServiceTest {
         UserResponse response = userService.create(request);
 
         assertNotNull(response);
-        assertEquals(1L, response.id());
+        assertEquals(USER_ID, response.id());
         assertEquals("Kelwin", response.name());
         assertEquals("kelwin@example.com", response.email());
 
@@ -78,9 +82,9 @@ class UserServiceTest {
     void shouldReturnUserById() {
         User user = createUser();
 
-        when(repository.findById(1L)).thenReturn(Optional.of(user));
+        when(repository.findById(USER_ID)).thenReturn(Optional.of(user));
 
-        UserResponse response = userService.findById(1L);
+        UserResponse response = userService.findById(USER_ID);
 
         assertEquals(user.getId(), response.id());
         assertEquals(user.getName(), response.name());
@@ -89,11 +93,11 @@ class UserServiceTest {
 
     @Test
     void shouldThrowExceptionWhenUserDoesNotExist() {
-        when(repository.findById(1L)).thenReturn(Optional.empty());
+        when(repository.findById(USER_ID)).thenReturn(Optional.empty());
 
         assertThrows(
                 ResourceNotFoundException.class,
-                () -> userService.findById(1L)
+                () -> userService.findById(USER_ID)
         );
     }
 
@@ -106,7 +110,7 @@ class UserServiceTest {
 
     private User createUser() {
         return User.builder()
-                .id(1L)
+                .id(USER_ID)
                 .name("Kelwin")
                 .email("kelwin@example.com")
                 .build();

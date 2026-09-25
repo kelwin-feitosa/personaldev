@@ -1,13 +1,13 @@
 CREATE TABLE users (
-    id BIGSERIAL PRIMARY KEY,
+    id UUID PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
     created_at TIMESTAMP NOT NULL
 );
 
 CREATE TABLE goals (
-    id BIGSERIAL PRIMARY KEY,
-    user_id BIGINT NOT NULL,
+    id UUID PRIMARY KEY,
+    user_id UUID NOT NULL,
     title VARCHAR(255) NOT NULL,
     description VARCHAR(1000),
     status VARCHAR(255) NOT NULL,
@@ -22,9 +22,9 @@ CREATE TABLE goals (
 );
 
 CREATE TABLE activities (
-    id BIGSERIAL PRIMARY KEY,
-    user_id BIGINT NOT NULL,
-    goal_id BIGINT,
+    id UUID PRIMARY KEY,
+    user_id UUID NOT NULL,
+    goal_id UUID,
     title VARCHAR(255) NOT NULL,
     description VARCHAR(1000),
     estimated_duration INTEGER,

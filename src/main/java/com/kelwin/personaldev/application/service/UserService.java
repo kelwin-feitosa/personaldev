@@ -1,6 +1,7 @@
 package com.kelwin.personaldev.application.service;
 
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
@@ -40,7 +41,7 @@ public class UserService {
                 .toList();
     }
 
-    public UserResponse findById(Long id) {
+    public UserResponse findById(UUID id) {
         User user = repository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 

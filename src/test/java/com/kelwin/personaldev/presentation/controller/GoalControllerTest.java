@@ -16,6 +16,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -25,6 +26,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(GoalController.class)
 @Import(GlobalExceptionHandler.class)
 class GoalControllerTest {
+
+    private static final UUID USER_ID =
+            UUID.fromString("11111111-1111-1111-1111-111111111111");
+
+    private static final UUID GOAL_ID =
+            UUID.fromString("22222222-2222-2222-2222-222222222222");
 
     @Autowired
     private MockMvc mockMvc;
@@ -49,12 +56,12 @@ class GoalControllerTest {
                                     "status": "ACTIVE",
                                     "priority": 1,
                                     "deadline": "2026-12-31",
-                                    "userId": 1
+                                    "userId": "11111111-1111-1111-1111-111111111111"
                                 }
                                 """))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").value(1))
-                .andExpect(jsonPath("$.userId").value(1))
+                .andExpect(jsonPath("$.id").value(GOAL_ID.toString()))
+                .andExpect(jsonPath("$.userId").value(USER_ID.toString()))
                 .andExpect(jsonPath("$.title").value("Aprender Java"))
                 .andExpect(jsonPath("$.description").value("Estudar Java e Spring"))
                 .andExpect(jsonPath("$.status").value("ACTIVE"))
@@ -69,8 +76,8 @@ class GoalControllerTest {
         GoalResponse goal1 = createGoalResponse();
 
         GoalResponse goal2 = new GoalResponse(
-                2L,
-                1L,
+                UUID.fromString("33333333-3333-3333-3333-333333333333"),
+                USER_ID,
                 "Aprender Python",
                 "Estudar Python",
                 GoalStatus.ACTIVE,
@@ -87,9 +94,9 @@ class GoalControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$.length()").value(2))
-                .andExpect(jsonPath("$[0].id").value(1))
+                .andExpect(jsonPath("$[0].id").value(GOAL_ID.toString()))
                 .andExpect(jsonPath("$[0].title").value("Aprender Java"))
-                .andExpect(jsonPath("$[1].id").value(2))
+                .andExpect(jsonPath("$[1].id").value("33333333-3333-3333-3333-333333333333"))
                 .andExpect(jsonPath("$[1].title").value("Aprender Python"));
     }
 
@@ -98,13 +105,13 @@ class GoalControllerTest {
 
         GoalResponse response = createGoalResponse();
 
-        when(goalService.findById(1L))
+        when(goalService.findById(GOAL_ID))
                 .thenReturn(response);
 
-        mockMvc.perform(get("/goals/1"))
+        mockMvc.perform(get("/goals/" + GOAL_ID))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(1))
-                .andExpect(jsonPath("$.userId").value(1))
+                .andExpect(jsonPath("$.id").value(GOAL_ID.toString()))
+                .andExpect(jsonPath("$.userId").value(USER_ID.toString()))
                 .andExpect(jsonPath("$.title").value("Aprender Java"))
                 .andExpect(jsonPath("$.status").value("ACTIVE"));
     }
@@ -112,12 +119,15 @@ class GoalControllerTest {
     @Test
     void shouldReturnNotFoundWhenGoalDoesNotExist() throws Exception {
 
-        when(goalService.findById(999L))
+        UUID nonExistentGoalId =
+                UUID.fromString("99999999-9999-9999-9999-999999999999");
+
+        when(goalService.findById(nonExistentGoalId))
                 .thenThrow(
                         new ResourceNotFoundException("Goal not found")
                 );
 
-        mockMvc.perform(get("/goals/999"))
+        mockMvc.perform(get("/goals/" + nonExistentGoalId))
                 .andExpect(status().isNotFound())
                 .andExpect(content().string("Goal not found"));
     }
@@ -143,8 +153,8 @@ class GoalControllerTest {
     private GoalResponse createGoalResponse() {
 
         return new GoalResponse(
-                1L,
-                1L,
+                GOAL_ID,
+                USER_ID,
                 "Aprender Java",
                 "Estudar Java e Spring",
                 GoalStatus.ACTIVE,

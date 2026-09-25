@@ -3,6 +3,7 @@ package com.kelwin.personaldev.domain.model;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 import java.util.ArrayList;
 
 import jakarta.persistence.Column;
@@ -35,8 +36,8 @@ import lombok.Setter;
 public class Goal {
 
     @Id 
-    @GeneratedValue (strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue
+    private UUID id;
 
     @ManyToOne (fetch = FetchType.LAZY, optional = false)
     @JoinColumn (name = "user_id", nullable = false)

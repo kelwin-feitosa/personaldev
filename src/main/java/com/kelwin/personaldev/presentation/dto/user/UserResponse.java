@@ -1,9 +1,10 @@
 package com.kelwin.personaldev.presentation.dto.user;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 public record UserResponse(
-    Long id,
+    UUID id,
     String name,
     String email,
     LocalDateTime createdAt

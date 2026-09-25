@@ -15,6 +15,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -24,6 +25,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(UserController.class)
 @Import(GlobalExceptionHandler.class)
 class UserControllerTest {
+
+    private static final UUID USER_ID =
+            UUID.fromString("11111111-1111-1111-1111-111111111111");
+
+    private static final UUID SECOND_USER_ID =
+            UUID.fromString("22222222-2222-2222-2222-222222222222");
 
     @Autowired
     private MockMvc mockMvc;
@@ -48,7 +55,7 @@ class UserControllerTest {
                                 }
                                 """))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.id").value(USER_ID.toString()))
                 .andExpect(jsonPath("$.name").value("Kelwin"))
                 .andExpect(jsonPath("$.email").value("kelwin@email.com"));
 
@@ -61,7 +68,7 @@ class UserControllerTest {
         UserResponse user1 = createUserResponse();
 
         UserResponse user2 = new UserResponse(
-                2L,
+                SECOND_USER_ID,
                 "João",
                 "joao@email.com",
                 LocalDateTime.now()
@@ -74,9 +81,9 @@ class UserControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$.length()").value(2))
-                .andExpect(jsonPath("$[0].id").value(1))
+                .andExpect(jsonPath("$[0].id").value(USER_ID.toString()))
                 .andExpect(jsonPath("$[0].name").value("Kelwin"))
-                .andExpect(jsonPath("$[1].id").value(2))
+                .andExpect(jsonPath("$[1].id").value(SECOND_USER_ID.toString()))
                 .andExpect(jsonPath("$[1].name").value("João"));
     }
 
@@ -85,12 +92,12 @@ class UserControllerTest {
 
         UserResponse response = createUserResponse();
 
-        when(userService.findById(1L))
+        when(userService.findById(USER_ID))
                 .thenReturn(response);
 
-        mockMvc.perform(get("/users/1"))
+        mockMvc.perform(get("/users/" + USER_ID))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.id").value(USER_ID.toString()))
                 .andExpect(jsonPath("$.name").value("Kelwin"))
                 .andExpect(jsonPath("$.email").value("kelwin@email.com"));
     }
@@ -98,12 +105,15 @@ class UserControllerTest {
     @Test
     void shouldReturnNotFoundWhenUserDoesNotExist() throws Exception {
 
-        when(userService.findById(999L))
+        UUID nonExistentUserId =
+                UUID.fromString("99999999-9999-9999-9999-999999999999");
+
+        when(userService.findById(nonExistentUserId))
                 .thenThrow(
                         new ResourceNotFoundException("User not found")
                 );
 
-        mockMvc.perform(get("/users/999"))
+        mockMvc.perform(get("/users/" + nonExistentUserId))
                 .andExpect(status().isNotFound())
                 .andExpect(content().string("User not found"));
     }
@@ -149,7 +159,7 @@ class UserControllerTest {
     private UserResponse createUserResponse() {
 
         return new UserResponse(
-                1L,
+                USER_ID,
                 "Kelwin",
                 "kelwin@email.com",
                 LocalDateTime.now()
