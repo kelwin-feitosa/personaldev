@@ -14,6 +14,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -119,6 +120,88 @@ class GoalServiceTest {
                 ResourceNotFoundException.class,
                 () -> goalService.findById(GOAL_ID)
         );
+    }
+
+    @Test
+    void shouldUpdateGoal() {
+        User user = createUser();
+        Goal goal = createGoal(user);
+
+        GoalCreateRequest request = new GoalCreateRequest(
+                "Novo objetivo",
+                "Nova descrição",
+                GoalStatus.COMPLETED,
+                5,
+                LocalDate.of(2026, 12, 1),
+                USER_ID
+        );
+
+        when(goalRepository.findById(GOAL_ID))
+                .thenReturn(Optional.of(goal));
+
+        when(goalRepository.save(goal))
+                .thenReturn(goal);
+
+        GoalResponse response = goalService.update(GOAL_ID, request);
+
+        assertNotNull(response);
+        assertEquals(GOAL_ID, response.id());
+        assertEquals(USER_ID, response.userId());
+        assertEquals("Novo objetivo", response.title());
+        assertEquals("Nova descrição", response.description());
+        assertEquals(GoalStatus.COMPLETED, response.status());
+        assertEquals(5, response.priority());
+        assertEquals(
+                LocalDate.of(2026, 12, 1),
+                response.deadline()
+        );
+
+        verify(goalRepository).findById(GOAL_ID);
+        verify(goalRepository).save(goal);
+    }
+
+    @Test
+    void shouldThrowExceptionWhenUpdatingNonExistingGoal() {
+        GoalCreateRequest request = createGoalRequest();
+
+        when(goalRepository.findById(GOAL_ID))
+                .thenReturn(Optional.empty());
+
+        assertThrows(
+                ResourceNotFoundException.class,
+                () -> goalService.update(GOAL_ID, request)
+        );
+
+        verify(goalRepository).findById(GOAL_ID);
+        verify(goalRepository, never()).save(any(Goal.class));
+    }
+
+    @Test
+    void shouldDeleteGoal() {
+        User user = createUser();
+        Goal goal = createGoal(user);
+
+        when(goalRepository.findById(GOAL_ID))
+                .thenReturn(Optional.of(goal));
+
+        goalService.delete(GOAL_ID);
+
+        verify(goalRepository).findById(GOAL_ID);
+        verify(goalRepository).delete(goal);
+    }
+
+    @Test
+    void shouldThrowExceptionWhenDeletingNonExistingGoal() {
+        when(goalRepository.findById(GOAL_ID))
+                .thenReturn(Optional.empty());
+
+        assertThrows(
+                ResourceNotFoundException.class,
+                () -> goalService.delete(GOAL_ID)
+        );
+
+        verify(goalRepository).findById(GOAL_ID);
+        verify(goalRepository, never()).delete(any(Goal.class));
     }
 
     private User createUser() {

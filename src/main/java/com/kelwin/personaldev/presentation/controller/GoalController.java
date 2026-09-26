@@ -43,4 +43,21 @@ public class GoalController {
     public ResponseEntity<GoalResponse> findById(@PathVariable UUID id) {
         return ResponseEntity.ok(goalService.findById(id));
     }
+
+    @PutMapping("/{id}")
+    @Operation(summary = "Update a goal")
+    public ResponseEntity<GoalResponse> update(
+            @PathVariable UUID id,
+            @Valid @RequestBody GoalCreateRequest request) {
+
+        return ResponseEntity.ok(goalService.update(id, request));
+    }
+
+    @DeleteMapping("/{id}")
+    @Operation(summary = "Delete a goal")
+    public ResponseEntity<Void> delete(@PathVariable UUID id) {
+        goalService.delete(id);
+
+        return ResponseEntity.noContent().build();
+    }
 }

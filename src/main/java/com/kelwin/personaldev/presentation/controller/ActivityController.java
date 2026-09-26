@@ -43,4 +43,21 @@ public class ActivityController {
     public ResponseEntity<ActivityResponse> findById(@PathVariable UUID id) {
         return ResponseEntity.ok(activityService.findById(id));
     }
+
+    @PutMapping("/{id}")
+    @Operation(summary = "Update an activity")
+    public ResponseEntity<ActivityResponse> update(
+            @PathVariable UUID id,
+            @Valid @RequestBody ActivityCreateRequest request) {
+
+        return ResponseEntity.ok(activityService.update(id, request));
+    }
+
+    @DeleteMapping("/{id}")
+    @Operation(summary = "Delete an activity")
+    public ResponseEntity<Void> delete(@PathVariable UUID id) {
+        activityService.delete(id);
+
+        return ResponseEntity.noContent().build();
+    }
 }

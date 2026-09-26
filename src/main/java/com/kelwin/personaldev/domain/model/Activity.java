@@ -60,4 +60,20 @@ public class Activity {
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
     }
+
+    public void update(
+            String title,
+            String description,
+            Integer estimatedDuration,
+            Integer difficulty,
+            Integer priority,
+            Goal goal
+    ) {
+        this.title = title;
+        this.description = description;
+        this.estimatedDuration = estimatedDuration;
+        this.difficulty = difficulty;
+        this.priority = priority;
+        this.goal = goal;
+    }
 }

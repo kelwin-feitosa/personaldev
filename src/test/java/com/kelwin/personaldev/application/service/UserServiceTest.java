@@ -37,8 +37,11 @@ class UserServiceTest {
         UserCreateRequest request = createUserRequest();
         User user = createUser();
 
-        when(repository.existsByEmail(request.email())).thenReturn(false);
-        when(repository.save(any(User.class))).thenReturn(user);
+        when(repository.existsByEmail(request.email()))
+                .thenReturn(false);
+
+        when(repository.save(any(User.class)))
+                .thenReturn(user);
 
         UserResponse response = userService.create(request);
 
@@ -54,7 +57,8 @@ class UserServiceTest {
     void shouldNotCreateUserWhenEmailAlreadyExists() {
         UserCreateRequest request = createUserRequest();
 
-        when(repository.existsByEmail(request.email())).thenReturn(true);
+        when(repository.existsByEmail(request.email()))
+                .thenReturn(true);
 
         assertThrows(
                 ResourceAlreadyExistsException.class,
@@ -68,7 +72,8 @@ class UserServiceTest {
     void shouldReturnAllUsers() {
         User user = createUser();
 
-        when(repository.findAll()).thenReturn(List.of(user));
+        when(repository.findAll())
+                .thenReturn(List.of(user));
 
         List<UserResponse> response = userService.findAll();
 
@@ -82,7 +87,8 @@ class UserServiceTest {
     void shouldReturnUserById() {
         User user = createUser();
 
-        when(repository.findById(USER_ID)).thenReturn(Optional.of(user));
+        when(repository.findById(USER_ID))
+                .thenReturn(Optional.of(user));
 
         UserResponse response = userService.findById(USER_ID);
 
@@ -93,12 +99,142 @@ class UserServiceTest {
 
     @Test
     void shouldThrowExceptionWhenUserDoesNotExist() {
-        when(repository.findById(USER_ID)).thenReturn(Optional.empty());
+        when(repository.findById(USER_ID))
+                .thenReturn(Optional.empty());
 
         assertThrows(
                 ResourceNotFoundException.class,
                 () -> userService.findById(USER_ID)
         );
+    }
+
+    @Test
+    void shouldUpdateUser() {
+        User user = createUser();
+
+        UserCreateRequest request = new UserCreateRequest(
+                "Novo nome",
+                "novo@example.com"
+        );
+
+        when(repository.findById(USER_ID))
+                .thenReturn(Optional.of(user));
+
+        when(repository.existsByEmail(request.email()))
+                .thenReturn(false);
+
+        when(repository.save(user))
+                .thenReturn(user);
+
+        UserResponse response = userService.update(USER_ID, request);
+
+        assertNotNull(response);
+        assertEquals(USER_ID, response.id());
+        assertEquals("Novo nome", response.name());
+        assertEquals("novo@example.com", response.email());
+
+        verify(repository).findById(USER_ID);
+        verify(repository).existsByEmail("novo@example.com");
+        verify(repository).save(user);
+    }
+
+    @Test
+    void shouldUpdateUserWithoutCheckingEmailWhenEmailIsUnchanged() {
+        User user = createUser();
+
+        UserCreateRequest request = new UserCreateRequest(
+                "Novo nome",
+                "kelwin@example.com"
+        );
+
+        when(repository.findById(USER_ID))
+                .thenReturn(Optional.of(user));
+
+        when(repository.save(user))
+                .thenReturn(user);
+
+        UserResponse response = userService.update(USER_ID, request);
+
+        assertNotNull(response);
+        assertEquals(USER_ID, response.id());
+        assertEquals("Novo nome", response.name());
+        assertEquals("kelwin@example.com", response.email());
+
+        verify(repository).findById(USER_ID);
+        verify(repository, never()).existsByEmail(anyString());
+        verify(repository).save(user);
+    }
+
+    @Test
+    void shouldNotUpdateUserWhenEmailAlreadyExists() {
+        User user = createUser();
+
+        UserCreateRequest request = new UserCreateRequest(
+                "Novo nome",
+                "other@example.com"
+        );
+
+        when(repository.findById(USER_ID))
+                .thenReturn(Optional.of(user));
+
+        when(repository.existsByEmail(request.email()))
+                .thenReturn(true);
+
+        assertThrows(
+                ResourceAlreadyExistsException.class,
+                () -> userService.update(USER_ID, request)
+        );
+
+        verify(repository).findById(USER_ID);
+        verify(repository).existsByEmail(request.email());
+        verify(repository, never()).save(any(User.class));
+    }
+
+    @Test
+    void shouldNotUpdateUserWhenUserDoesNotExist() {
+        UserCreateRequest request = new UserCreateRequest(
+                "Novo nome",
+                "novo@example.com"
+        );
+
+        when(repository.findById(USER_ID))
+                .thenReturn(Optional.empty());
+
+        assertThrows(
+                ResourceNotFoundException.class,
+                () -> userService.update(USER_ID, request)
+        );
+
+        verify(repository).findById(USER_ID);
+        verify(repository, never()).existsByEmail(anyString());
+        verify(repository, never()).save(any(User.class));
+    }
+
+    @Test
+    void shouldDeleteUser() {
+        User user = createUser();
+
+        when(repository.findById(USER_ID))
+                .thenReturn(Optional.of(user));
+
+        userService.delete(USER_ID);
+
+        verify(repository).findById(USER_ID);
+        verify(repository).delete(user);
+    }
+
+    @Test
+    void shouldNotDeleteUserWhenUserDoesNotExist() {
+        when(repository.findById(USER_ID))
+                .thenReturn(Optional.empty());
+
+        assertThrows(
+                ResourceNotFoundException.class,
+                () -> userService.delete(USER_ID)
+        );
+
+        verify(repository).findById(USER_ID);
+        verify(repository, never()).delete(any(User.class));
     }
 
     private UserCreateRequest createUserRequest() {

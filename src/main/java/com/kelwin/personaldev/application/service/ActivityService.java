@@ -56,10 +56,42 @@ public class ActivityService {
     }
 
     public ActivityResponse findById(UUID id) {
-        Activity activity = activityRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Activity not found"));
+        return toResponse(findEntityById(id));
+    }
 
-        return toResponse(activity);
+    public ActivityResponse update(UUID id, ActivityCreateRequest request) {
+        Activity activity = findEntityById(id);
+
+        Goal goal = null;
+
+        if (request.goalId() != null) {
+            goal = goalRepository.findById(request.goalId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Goal not found"));
+        }
+
+        activity.update(
+                request.title(),
+                request.description(),
+                request.estimatedDuration(),
+                request.difficulty(),
+                request.priority(),
+                goal
+        );
+
+        Activity updatedActivity = activityRepository.save(activity);
+
+        return toResponse(updatedActivity);
+    }
+
+    public void delete(UUID id) {
+        Activity activity = findEntityById(id);
+
+        activityRepository.delete(activity);
+    }
+
+    private Activity findEntityById(UUID id) {
+        return activityRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Activity not found"));
     }
 
     private ActivityResponse toResponse(Activity activity) {

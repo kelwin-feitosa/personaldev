@@ -12,7 +12,6 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -78,5 +77,19 @@ public class Goal {
     @PreUpdate 
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
+    }
+
+    public void update(
+            String title,
+            String description,
+            GoalStatus status,
+            Integer priority,
+            LocalDate deadline
+    ) {
+        this.title = title;
+        this.description = description;
+        this.status = status;
+        this.priority = priority;
+        this.deadline = deadline;
     }
 }

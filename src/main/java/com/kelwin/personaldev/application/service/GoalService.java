@@ -45,10 +45,34 @@ public class GoalService {
     }
 
     public GoalResponse findById(UUID id) {
-        Goal goal = goalRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Goal not found"));
+        return toResponse(findEntityById(id));
+    }
 
-        return toResponse(goal);
+    public GoalResponse update(UUID id, GoalCreateRequest request) {
+        Goal goal = findEntityById(id);
+
+        goal.update(
+                request.title(),
+                request.description(),
+                request.status(),
+                request.priority(),
+                request.deadline()
+        );
+
+        Goal updatedGoal = goalRepository.save(goal);
+
+        return toResponse(updatedGoal);
+    }
+
+    public void delete(UUID id) {
+        Goal goal = findEntityById(id);
+
+        goalRepository.delete(goal);
+    }
+
+    private Goal findEntityById(UUID id) {
+        return goalRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Goal not found"));
     }
 
     private GoalResponse toResponse(Goal goal) {

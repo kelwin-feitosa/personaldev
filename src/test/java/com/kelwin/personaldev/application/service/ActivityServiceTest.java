@@ -2,6 +2,7 @@ package com.kelwin.personaldev.application.service;
 
 import com.kelwin.personaldev.domain.model.Activity;
 import com.kelwin.personaldev.domain.model.Goal;
+import com.kelwin.personaldev.domain.model.GoalStatus;
 import com.kelwin.personaldev.domain.model.User;
 import com.kelwin.personaldev.domain.repository.ActivityRepository;
 import com.kelwin.personaldev.domain.repository.GoalRepository;
@@ -175,6 +176,165 @@ class ActivityServiceTest {
         );
     }
 
+    @Test
+    void shouldUpdateActivityWithoutGoal() {
+        User user = createUser();
+        Activity activity = createActivity(user, null);
+
+        ActivityCreateRequest request = new ActivityCreateRequest(
+                "Novo título",
+                "Nova descrição",
+                90,
+                4,
+                2,
+                null,
+                USER_ID
+        );
+
+        when(activityRepository.findById(ACTIVITY_ID))
+                .thenReturn(Optional.of(activity));
+
+        when(activityRepository.save(activity))
+                .thenReturn(activity);
+
+        ActivityResponse response = activityService.update(
+                ACTIVITY_ID,
+                request
+        );
+
+        assertNotNull(response);
+        assertEquals(ACTIVITY_ID, response.id());
+        assertEquals(USER_ID, response.userId());
+        assertNull(response.goalId());
+        assertEquals("Novo título", response.title());
+        assertEquals("Nova descrição", response.description());
+        assertEquals(90, response.estimatedDuration());
+        assertEquals(4, response.difficulty());
+        assertEquals(2, response.priority());
+
+        verify(activityRepository).findById(ACTIVITY_ID);
+        verify(activityRepository).save(activity);
+    }
+
+    @Test
+    void shouldUpdateActivityWithGoal() {
+        User user = createUser();
+        Goal oldGoal = createGoal(user);
+        Goal newGoal = Goal.builder()
+                .id(UUID.fromString("44444444-4444-4444-4444-444444444444"))
+                .user(user)
+                .title("Novo objetivo")
+                .status(GoalStatus.ACTIVE)
+                .priority(1)
+                .build();
+
+        Activity activity = createActivity(user, oldGoal);
+
+        ActivityCreateRequest request = new ActivityCreateRequest(
+                "Nova atividade",
+                "Nova descrição",
+                120,
+                5,
+                3,
+                newGoal.getId(),
+                USER_ID
+        );
+
+        when(activityRepository.findById(ACTIVITY_ID))
+                .thenReturn(Optional.of(activity));
+
+        when(goalRepository.findById(newGoal.getId()))
+                .thenReturn(Optional.of(newGoal));
+
+        when(activityRepository.save(activity))
+                .thenReturn(activity);
+
+        ActivityResponse response = activityService.update(
+                ACTIVITY_ID,
+                request
+        );
+
+        assertNotNull(response);
+        assertEquals(ACTIVITY_ID, response.id());
+        assertEquals(USER_ID, response.userId());
+        assertEquals(newGoal.getId(), response.goalId());
+        assertEquals("Nova atividade", response.title());
+        assertEquals("Nova descrição", response.description());
+        assertEquals(120, response.estimatedDuration());
+        assertEquals(5, response.difficulty());
+        assertEquals(3, response.priority());
+
+        verify(activityRepository).findById(ACTIVITY_ID);
+        verify(goalRepository).findById(newGoal.getId());
+        verify(activityRepository).save(activity);
+    }
+
+    @Test
+    void shouldThrowExceptionWhenUpdatingNonExistingActivity() {
+        ActivityCreateRequest request = createActivityRequestWithoutGoal();
+
+        when(activityRepository.findById(ACTIVITY_ID))
+                .thenReturn(Optional.empty());
+
+        assertThrows(
+                ResourceNotFoundException.class,
+                () -> activityService.update(ACTIVITY_ID, request)
+        );
+
+        verify(activityRepository).findById(ACTIVITY_ID);
+        verify(activityRepository, never()).save(any(Activity.class));
+    }
+
+    @Test
+    void shouldThrowExceptionWhenUpdatingActivityWithNonExistingGoal() {
+        User user = createUser();
+        Activity activity = createActivity(user, null);
+        ActivityCreateRequest request = createActivityRequestWithGoal();
+
+        when(activityRepository.findById(ACTIVITY_ID))
+                .thenReturn(Optional.of(activity));
+
+        when(goalRepository.findById(GOAL_ID))
+                .thenReturn(Optional.empty());
+
+        assertThrows(
+                ResourceNotFoundException.class,
+                () -> activityService.update(ACTIVITY_ID, request)
+        );
+
+        verify(activityRepository).findById(ACTIVITY_ID);
+        verify(goalRepository).findById(GOAL_ID);
+        verify(activityRepository, never()).save(any(Activity.class));
+    }
+
+    @Test
+    void shouldDeleteActivity() {
+        User user = createUser();
+        Activity activity = createActivity(user, null);
+
+        when(activityRepository.findById(ACTIVITY_ID))
+                .thenReturn(Optional.of(activity));
+
+        activityService.delete(ACTIVITY_ID);
+
+        verify(activityRepository).findById(ACTIVITY_ID);
+        verify(activityRepository).delete(activity);
+    }
+
+    @Test
+    void shouldThrowExceptionWhenDeletingNonExistingActivity() {
+        when(activityRepository.findById(ACTIVITY_ID))
+                .thenReturn(Optional.empty());
+
+        assertThrows(
+                ResourceNotFoundException.class,
+                () -> activityService.delete(ACTIVITY_ID)
+        );
+
+        verify(activityRepository).findById(ACTIVITY_ID);
+        verify(activityRepository, never()).delete(any(Activity.class));
+    }
+
     private User createUser() {
         return User.builder()
                 .id(USER_ID)
@@ -188,6 +348,8 @@ class ActivityServiceTest {
                 .id(GOAL_ID)
                 .user(user)
                 .title("Aprender Java")
+                .status(GoalStatus.ACTIVE)
+                .priority(1)
                 .build();
     }
 
