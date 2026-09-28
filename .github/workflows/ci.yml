@@ -25,7 +25,18 @@ jobs:
           cache: maven
 
       - name: Start PostgreSQL
-        run: docker compose up -d
+        env:
+          DB_NAME: personaldev
+          DB_USERNAME: postgres
+          DB_PASSWORD: postgres
+          DB_PORT: 5434
+        run: docker compose up -d --wait
 
       - name: Run tests
+        env:
+          SPRING_PROFILES_ACTIVE: test
         run: ./mvnw verify
+
+      - name: Stop PostgreSQL
+        if: always()
+        run: docker compose down -v
