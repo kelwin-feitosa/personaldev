@@ -60,4 +60,22 @@ public class ActivityController {
 
         return ResponseEntity.noContent().build();
     }
+
+    @PostMapping("/{id}/start")
+    @Operation(summary = "Start an activity")
+    public ResponseEntity<ActivityResponse> start(@PathVariable UUID id) {
+        return ResponseEntity.ok(activityService.start(id));
+    }
+
+    @PostMapping("/{id}/complete")
+    @Operation(summary = "Complete an activity")
+    public ResponseEntity<ActivityResponse> complete(@PathVariable UUID id) {
+        return ResponseEntity.ok(activityService.complete(id));
+    }
+
+    @PostMapping("/{id}/cancel")
+    @Operation(summary = "Cancel an activity")
+    public ResponseEntity<ActivityResponse> cancel(@PathVariable UUID id) {
+        return ResponseEntity.ok(activityService.cancel(id));
+    }
 }

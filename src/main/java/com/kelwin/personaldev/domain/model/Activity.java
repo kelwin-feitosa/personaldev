@@ -21,6 +21,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 import com.kelwin.personaldev.domain.model.enums.ActivityStatus;
+import com.kelwin.personaldev.presentation.exception.DomainRuleException;
 
 @Entity
 @Table(name = "activities")
@@ -75,6 +76,37 @@ public class Activity {
     @PreUpdate
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
+    }
+
+    public void start() {
+        if (status != ActivityStatus.PENDING) {
+            throw new DomainRuleException(
+                    "Only pending activities can be started"
+            );
+        }
+
+        status = ActivityStatus.IN_PROGRESS;
+    }
+
+    public void complete() {
+        if (status != ActivityStatus.IN_PROGRESS) {
+            throw new DomainRuleException(
+                    "Only in-progress activities can be completed"
+            );
+        }
+
+        status = ActivityStatus.COMPLETED;
+    }
+
+    public void cancel() {
+        if (status != ActivityStatus.PENDING &&
+            status != ActivityStatus.IN_PROGRESS) {
+            throw new DomainRuleException(
+                    "Only pending or in-progress activities can be cancelled"
+            );
+        }
+
+        status = ActivityStatus.CANCELLED;
     }
 
     public void update(

@@ -74,11 +74,39 @@ public class ActivityService {
         return toResponse(updatedActivity);
     }
 
+    public ActivityResponse start(UUID id) {
+        Activity activity = findEntityById(id);
+
+        activity.start();
+
+        Activity updatedActivity = activityRepository.save(activity);
+        return toResponse(updatedActivity);
+    }
+
+    public ActivityResponse complete(UUID id) {
+        Activity activity = findEntityById(id);
+
+        activity.complete();
+
+        Activity updatedActivity = activityRepository.save(activity);
+        return toResponse(updatedActivity);
+    }
+
+    public ActivityResponse cancel(UUID id) {
+        Activity activity = findEntityById(id);
+
+        activity.cancel();
+
+        Activity updatedActivity = activityRepository.save(activity);
+        return toResponse(updatedActivity);
+    }
+
     public void delete(UUID id) {
         Activity activity = findEntityById(id);
 
         activityRepository.delete(activity);
     }
+    
 
     private Goal findAndValidateGoal(UUID goalId, User user) {
         if (goalId == null) {

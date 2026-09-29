@@ -26,6 +26,13 @@ public class GlobalExceptionHandler {
                 .body(exception.getMessage());
     }
 
+    @ExceptionHandler(DomainRuleException.class)
+    public ResponseEntity<String> handleDomainRule(DomainRuleException exception) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(exception.getMessage());
+    }
+
     @ExceptionHandler(BusinessRuleException.class)
     public ResponseEntity<String> handleBusinessRule(BusinessRuleException exception) {
         return ResponseEntity
