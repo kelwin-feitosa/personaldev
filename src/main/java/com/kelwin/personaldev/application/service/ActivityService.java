@@ -8,6 +8,7 @@ import com.kelwin.personaldev.domain.repository.GoalRepository;
 import com.kelwin.personaldev.domain.repository.UserRepository;
 import com.kelwin.personaldev.presentation.dto.activity.ActivityCreateRequest;
 import com.kelwin.personaldev.presentation.dto.activity.ActivityResponse;
+import com.kelwin.personaldev.presentation.exception.BusinessRuleException;
 import com.kelwin.personaldev.presentation.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -27,12 +28,7 @@ public class ActivityService {
         User user = userRepository.findById(request.userId())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        Goal goal = null;
-
-        if (request.goalId() != null) {
-            goal = goalRepository.findById(request.goalId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Goal not found"));
-        }
+        Goal goal = findAndValidateGoal(request.goalId(), user);
 
         Activity activity = Activity.builder()
                 .user(user)
@@ -62,12 +58,7 @@ public class ActivityService {
     public ActivityResponse update(UUID id, ActivityCreateRequest request) {
         Activity activity = findEntityById(id);
 
-        Goal goal = null;
-
-        if (request.goalId() != null) {
-            goal = goalRepository.findById(request.goalId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Goal not found"));
-        }
+        Goal goal = findAndValidateGoal(request.goalId(), activity.getUser());
 
         activity.update(
                 request.title(),
@@ -87,6 +78,21 @@ public class ActivityService {
         Activity activity = findEntityById(id);
 
         activityRepository.delete(activity);
+    }
+
+    private Goal findAndValidateGoal(UUID goalId, User user) {
+        if (goalId == null) {
+            return null;
+        }
+
+        Goal goal = goalRepository.findById(goalId)
+                .orElseThrow(() -> new ResourceNotFoundException("Goal not found"));
+
+        if (!goal.getUser().getId().equals(user.getId())) {
+            throw new BusinessRuleException("Goal does not belong to user");
+        }
+
+        return goal;
     }
 
     private Activity findEntityById(UUID id) {

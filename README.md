@@ -1,8 +1,10 @@
 # PersonalDev
 
-Aplicação pessoal voltada para organização, acompanhamento de atividades, desenvolvimento de hábitos de estudo e gerenciamento de conhecimento.
+Aplicação pessoal voltada para organização de objetivos, atividades, desenvolvimento de hábitos de estudo e gerenciamento de conhecimento.
 
-O projeto também tem como objetivo servir como um ambiente prático para aplicar e aprofundar conceitos de Engenharia de Software, desenvolvimento backend, banco de dados, testes e, futuramente, Machine Learning.
+O projeto também serve como ambiente prático para aplicar e aprofundar conceitos de Engenharia de Software, desenvolvimento backend, banco de dados, testes, integração contínua e, futuramente, estatística e Machine Learning.
+
+---
 
 ## 🎯 Objetivo
 
@@ -10,13 +12,13 @@ O PersonalDev busca ajudar o usuário a:
 
 - Organizar objetivos e atividades;
 - Registrar o que pretende fazer e o que realmente fez;
-- Registrar seu estado atual, como energia, motivação e tempo disponível;
+- Acompanhar a execução das atividades;
 - Reduzir a procrastinação através de sugestões de atividades alternativas;
 - Registrar conhecimentos aprendidos;
 - Revisar conhecimentos de forma adaptativa;
-- Utilizar os dados acumulados para futuramente melhorar as sugestões através de estatística e Machine Learning.
+- Utilizar dados históricos para futuramente melhorar as sugestões através de estatística e Machine Learning.
 
-A ideia é que o sistema evolua de regras simples para abordagens mais inteligentes conforme dados reais forem acumulados.
+A ideia é que o sistema evolua gradualmente, começando com regras determinísticas e utilizando abordagens mais inteligentes conforme dados reais de uso forem acumulados.
 
 ---
 
@@ -28,17 +30,17 @@ O sistema será baseado principalmente em dois fluxos.
 
 ```text
 Objetivos
-    ↓
+   ↓
 Atividades
-    ↓
-Estado atual
-    ↓
+   ↓
+Contexto atual
+   ↓
 Sugestão de atividade
-    ↓
+   ↓
 Execução
-    ↓
+   ↓
 Registro dos resultados
-    ↓
+   ↓
 Melhores sugestões futuras
 ```
 
@@ -46,17 +48,21 @@ Melhores sugestões futuras
 
 ```text
 Conhecimento aprendido
-    ↓
+   ↓
 Revisões
-    ↓
+   ↓
 Avaliação de desempenho
-    ↓
-Estimativa de domínio
-    ↓
+   ↓
+Estimativa de retenção
+   ↓
 Próxima revisão
-    ↓
+   ↓
 Histórico de aprendizagem
 ```
+
+As atividades e os conhecimentos são tratados como conceitos diferentes.
+
+Uma atividade representa uma ação que o usuário pretende realizar, enquanto um conhecimento representa algo que o usuário aprendeu e deseja manter.
 
 ---
 
@@ -94,25 +100,33 @@ A estrutura poderá evoluir conforme novas necessidades surgirem.
 
 ---
 
-## 📦 Modelo inicial do domínio
+## 📦 Modelo atual do domínio
 
-O modelo inicial é composto pelas seguintes entidades:
+Atualmente, o núcleo implementado é:
 
 ```text
 User
- ├── Goal
- │    └── Activity
- │          └── ActivityExecution
- │
- ├── Knowledge
- │      └── KnowledgeReview
- │
- └── UserState
+├── Goal
+│    └── Activity
 ```
 
-### Entidades
+A arquitetura planejada será expandida para:
 
-#### User
+```text
+User
+├── Goal
+│    └── Activity
+│          └── ActivityExecution
+│
+├── Knowledge
+│      └── KnowledgeReview
+│
+└── UserState
+```
+
+As entidades `ActivityExecution`, `Knowledge`, `KnowledgeReview` e `UserState` fazem parte do modelo planejado e serão implementadas nas próximas etapas.
+
+### User
 
 Representa o usuário da aplicação.
 
@@ -122,7 +136,7 @@ Principais informações:
 - E-mail;
 - Data de criação.
 
-#### Goal
+### Goal
 
 Representa um objetivo que o usuário deseja alcançar.
 
@@ -134,7 +148,7 @@ Possui informações como:
 - Prioridade;
 - Prazo.
 
-#### Activity
+### Activity
 
 Representa uma atividade relacionada ou não a um objetivo.
 
@@ -147,27 +161,66 @@ Possui informações como:
 - Prioridade;
 - Estado ativo/inativo.
 
-#### ActivityExecution
+Uma atividade pode existir sem um objetivo associado.
 
-Representará uma execução real de uma atividade, permitindo comparar o planejado com o realizado.
+Quando possui um objetivo, o sistema garante que o objetivo pertença ao mesmo usuário da atividade.
 
-#### Knowledge
+### ActivityExecution
 
-Representa um conhecimento que o usuário aprendeu e explicou com suas próprias palavras.
+Será responsável por registrar uma execução real de uma atividade.
 
-#### KnowledgeReview
+Uma mesma atividade poderá possuir várias execuções.
 
-Representará uma revisão de um conhecimento, armazenando informações sobre desempenho, dificuldade percebida e confiança.
+Por exemplo:
 
-#### UserState
+```text
+Activity
+"Estudar Spring Security"
+Duração estimada: 180 minutos
 
-Representará o estado do usuário em determinado momento, incluindo informações como:
+    ├── Execution 1
+    │   60 minutos — PARTIAL
+    │
+    ├── Execution 2
+    │   70 minutos — PARTIAL
+    │
+    └── Execution 3
+        50 minutos — COMPLETED
+```
 
-- Motivação;
+Isso permitirá comparar o planejamento com o comportamento real do usuário.
+
+### Knowledge
+
+Representará um conhecimento que o usuário aprendeu e deseja manter.
+
+O conhecimento será independente das atividades, permitindo que uma mesma área de conhecimento seja revisada diversas vezes ao longo do tempo.
+
+### KnowledgeReview
+
+Representará uma revisão de um conhecimento.
+
+Cada revisão poderá registrar informações como:
+
+- Momento da revisão;
+- Desempenho;
+- Dificuldade percebida;
+- Confiança;
+- Próxima revisão.
+
+A frequência das revisões deverá se adaptar ao desempenho do usuário: conhecimentos lembrados com facilidade poderão ser revisados em intervalos maiores, enquanto conhecimentos com baixo desempenho terão maior prioridade.
+
+### UserState
+
+Representará informações observáveis sobre o contexto atual do usuário, como:
+
 - Energia;
+- Motivação;
 - Tempo disponível;
-- Estresse;
-- Foco.
+- Foco;
+- Contexto da utilização.
+
+Essas informações poderão futuramente ser utilizadas pelo sistema de recomendação.
 
 ---
 
@@ -211,39 +264,46 @@ Representará o estado do usuário em determinado momento, incluindo informaçõ
 ### Futuramente
 
 - React
-- Machine Learning
 - Estatística aplicada aos dados de uso
+- Machine Learning
 
 ---
 
 ## 🔄 Integração Contínua
 
-O projeto utiliza GitHub Actions para executar automaticamente o processo de validação a cada push e pull request direcionado às branches principais.
+O projeto utiliza GitHub Actions para validar automaticamente o código em `push` e `pull request` direcionados à branch `master`.
 
 O pipeline atualmente:
 
 1. Obtém o código do repositório;
 2. Configura o JDK 21;
-3. Utiliza o Maven Wrapper;
-4. Executa o processo de build e testes através do `mvnw verify`.
+3. Utiliza cache do Maven;
+4. Inicia o PostgreSQL através do Docker Compose;
+5. Ativa o profile de teste;
+6. Executa `./mvnw verify`;
+7. Encerra os containers ao final da execução.
 
-Workflow:
+Fluxo:
 
 ```text
 Push / Pull Request
         ↓
 GitHub Actions
         ↓
+Checkout
+        ↓
 JDK 21
         ↓
-Maven
+PostgreSQL
+        ↓
+Profile de teste
+        ↓
+Maven Verify
         ↓
 Build + Testes
-        ↓
-Resultado
 ```
 
-O CI será evoluído conforme o projeto ganhar novas ferramentas de qualidade, testes de integração e outras verificações.
+O CI será evoluído conforme o projeto ganhar novas ferramentas de qualidade e verificações.
 
 ---
 
@@ -266,10 +326,10 @@ Para facilitar a configuração de novos ambientes, o projeto possui um `.env.ex
 
 ### Porta
 
-O PostgreSQL utiliza a porta `5434` no host para evitar conflito com outros bancos PostgreSQL locais.
+O PostgreSQL utiliza a porta `5434` no host para evitar conflitos com outros bancos PostgreSQL locais.
 
 ```text
-Host: 5434
+Host:      5434
 Container: 5432
 ```
 
@@ -301,7 +361,7 @@ Isso significa que o Hibernate não é responsável por criar ou alterar o banco
 
 A responsabilidade pela evolução do schema fica com o Flyway.
 
-O Hibernate apenas verifica se as entidades estão compatíveis com o banco existente.
+O Hibernate apenas verifica se as entidades estão compatíveis com o schema existente.
 
 ---
 
@@ -329,6 +389,8 @@ http://localhost:8080/v3/api-docs
 POST   /users
 GET    /users
 GET    /users/{id}
+PUT    /users/{id}
+DELETE /users/{id}
 ```
 
 #### Goals
@@ -337,6 +399,8 @@ GET    /users/{id}
 POST   /goals
 GET    /goals
 GET    /goals/{id}
+PUT    /goals/{id}
+DELETE /goals/{id}
 ```
 
 #### Activities
@@ -345,6 +409,8 @@ GET    /goals/{id}
 POST   /activities
 GET    /activities
 GET    /activities/{id}
+PUT    /activities/{id}
+DELETE /activities/{id}
 ```
 
 ---
@@ -362,8 +428,13 @@ O projeto possui tratamento global para:
 
 - Recursos não encontrados → `404 Not Found`;
 - Recursos duplicados → `409 Conflict`;
+- Regras de negócio violadas → `400 Bad Request`;
 - Erros de validação → `400 Bad Request`;
 - Erros inesperados → `500 Internal Server Error`.
+
+As regras de negócio também são validadas na camada de serviço.
+
+Por exemplo, uma atividade associada a um objetivo deve utilizar um objetivo pertencente ao mesmo usuário.
 
 ---
 
@@ -424,7 +495,7 @@ Durante a inicialização, o Flyway executará as migrations pendentes e o Hiber
 
 Os testes são desenvolvidos junto com as funcionalidades da aplicação.
 
-A estrutura atual inclui testes para os Services e Controllers:
+A estrutura atual inclui testes para Services e Controllers:
 
 ```text
 src/test/java/com/kelwin/personaldev/
@@ -447,9 +518,12 @@ Os testes dos Services verificam principalmente:
 
 - Criação de recursos;
 - Busca de recursos;
+- Atualização de recursos;
+- Exclusão de recursos;
 - Recursos inexistentes;
 - Recursos duplicados;
-- Relacionamentos entre entidades.
+- Relacionamentos entre entidades;
+- Regras de negócio.
 
 ### Controller Tests
 
@@ -461,7 +535,7 @@ Os testes dos Controllers utilizam `MockMvc` para verificar:
 - Validação das requisições;
 - Tratamento de exceções.
 
-Os testes das camadas são isolados para evitar testar a mesma responsabilidade mais de uma vez.
+As responsabilidades das camadas são testadas de forma isolada para evitar duplicação desnecessária.
 
 Para executar os testes:
 
@@ -497,6 +571,7 @@ Para executar o ciclo completo de build:
 - [x] Controllers
 - [x] Validações
 - [x] Tratamento global de exceções
+- [x] Regras de negócio entre entidades
 - [x] Swagger/OpenAPI
 - [x] Testes dos Services
 - [x] Testes dos Controllers
@@ -505,27 +580,37 @@ Para executar o ciclo completo de build:
 ### MVP 2 — Registro e acompanhamento
 
 - [ ] `ActivityExecution`
+- [ ] Histórico de execução
 - [ ] `Knowledge`
 - [ ] `KnowledgeReview`
+- [ ] Sistema adaptativo de revisão
 - [ ] `UserState`
-- [ ] Histórico de execução
-- [ ] Sistema de revisão de conhecimento
 
 ### MVP 3 — Recomendações
 
 Inicialmente, as recomendações serão baseadas em regras determinísticas.
 
-Depois, conforme houver dados suficientes:
+O sistema poderá considerar fatores como:
+
+- Prioridade;
+- Tempo disponível;
+- Duração estimada;
+- Dificuldade;
+- Prazo;
+- Necessidade de revisão;
+- Contexto atual do usuário.
+
+Posteriormente, conforme dados reais forem acumulados:
 
 ```text
-Regras
-  ↓
+Regras determinísticas
+        ↓
 Estatística
-  ↓
+        ↓
 Machine Learning
 ```
 
-A utilização de Machine Learning será feita apenas quando existir uma necessidade clara e dados suficientes para justificar sua utilização.
+Machine Learning será utilizado apenas quando houver dados suficientes e uma necessidade clara de adaptação além das regras existentes.
 
 ### MVP 4 — Frontend
 
@@ -537,6 +622,7 @@ A utilização de Machine Learning será feita apenas quando existir uma necessi
 - [ ] Gestão de conhecimentos
 - [ ] Revisões
 - [ ] Visualização de histórico
+- [ ] Sistema de recomendações
 
 ---
 
@@ -566,14 +652,15 @@ A complexidade do projeto será aumentada gradualmente, evitando adicionar tecno
 
 ## 📌 Status
 
-**Em desenvolvimento — fase inicial de estruturação.**
+**Em desenvolvimento — construção do núcleo do backend.**
 
 Atualmente o projeto possui:
 
 - Estrutura inicial de domínio;
+- Entidades `User`, `Goal` e `Activity`;
 - PostgreSQL executando via Docker;
 - Configuração por variáveis de ambiente;
-- Profile de desenvolvimento;
+- Profiles de aplicação e teste;
 - Flyway configurado;
 - Migration inicial;
 - Validação do schema através do Hibernate;
@@ -583,7 +670,10 @@ Atualmente o projeto possui:
 - Controllers REST;
 - Validação das requisições;
 - Tratamento global de exceções;
+- Validação de regras de negócio;
 - Documentação com Swagger/OpenAPI;
 - Testes automatizados dos Services;
 - Testes automatizados dos Controllers;
 - Pipeline de CI com GitHub Actions.
+
+O próximo passo do desenvolvimento é implementar o registro das execuções das atividades através de `ActivityExecution`.

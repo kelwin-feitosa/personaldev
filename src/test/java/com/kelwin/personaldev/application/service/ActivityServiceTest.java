@@ -9,6 +9,7 @@ import com.kelwin.personaldev.domain.repository.GoalRepository;
 import com.kelwin.personaldev.domain.repository.UserRepository;
 import com.kelwin.personaldev.presentation.dto.activity.ActivityCreateRequest;
 import com.kelwin.personaldev.presentation.dto.activity.ActivityResponse;
+import com.kelwin.personaldev.presentation.exception.BusinessRuleException;
 import com.kelwin.personaldev.presentation.exception.ResourceNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -127,6 +128,34 @@ class ActivityServiceTest {
         assertThrows(
                 ResourceNotFoundException.class,
                 () -> activityService.create(request)
+        );
+
+        verify(activityRepository, never()).save(any(Activity.class));
+    }
+
+    @Test
+    void shouldNotCreateActivityWhenGoalBelongsToAnotherUser() {
+        User user = createUser();
+
+        User anotherUser = User.builder()
+            .id(UUID.fromString("55555555-5555-5555-5555-555555555555"))
+            .name("Outro usuário")
+            .email("outro@example.com")
+            .build();
+
+        Goal goal = createGoal(anotherUser);
+
+        ActivityCreateRequest request = createActivityRequestWithGoal();
+
+        when(userRepository.findById(request.userId()))
+            .thenReturn(Optional.of(user));
+
+        when(goalRepository.findById(request.goalId()))
+            .thenReturn(Optional.of(goal));
+
+        assertThrows(
+            BusinessRuleException.class,
+            () -> activityService.create(request)
         );
 
         verify(activityRepository, never()).save(any(Activity.class));
@@ -300,6 +329,38 @@ class ActivityServiceTest {
         assertThrows(
                 ResourceNotFoundException.class,
                 () -> activityService.update(ACTIVITY_ID, request)
+        );
+
+        verify(activityRepository).findById(ACTIVITY_ID);
+        verify(goalRepository).findById(GOAL_ID);
+        verify(activityRepository, never()).save(any(Activity.class));
+    }
+
+    @Test
+    void shouldNotUpdateActivityWhenGoalBelongsToAnotherUser() {
+        User user = createUser();
+
+        User anotherUser = User.builder()
+            .id(UUID.fromString("55555555-5555-5555-5555-555555555555"))
+            .name("Outro usuário")
+            .email("outro@example.com")
+            .build();
+
+        Goal goal = createGoal(anotherUser);
+
+        Activity activity = createActivity(user, null);
+
+        ActivityCreateRequest request = createActivityRequestWithGoal();
+
+        when(activityRepository.findById(ACTIVITY_ID))
+            .thenReturn(Optional.of(activity));
+
+        when(goalRepository.findById(GOAL_ID))
+            .thenReturn(Optional.of(goal));
+
+        assertThrows(
+            BusinessRuleException.class,
+            () -> activityService.update(ACTIVITY_ID, request)
         );
 
         verify(activityRepository).findById(ACTIVITY_ID);
