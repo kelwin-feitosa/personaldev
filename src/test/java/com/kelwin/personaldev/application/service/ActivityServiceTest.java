@@ -2,8 +2,9 @@ package com.kelwin.personaldev.application.service;
 
 import com.kelwin.personaldev.domain.model.Activity;
 import com.kelwin.personaldev.domain.model.Goal;
-import com.kelwin.personaldev.domain.model.GoalStatus;
 import com.kelwin.personaldev.domain.model.User;
+import com.kelwin.personaldev.domain.model.enums.ActivityStatus;
+import com.kelwin.personaldev.domain.model.enums.GoalStatus;
 import com.kelwin.personaldev.domain.repository.ActivityRepository;
 import com.kelwin.personaldev.domain.repository.GoalRepository;
 import com.kelwin.personaldev.domain.repository.UserRepository;
@@ -69,7 +70,7 @@ class ActivityServiceTest {
         assertNull(response.goalId());
         assertEquals("Estudar Collections", response.title());
         assertEquals(60, response.estimatedDuration());
-        assertTrue(response.active());
+        assertEquals(ActivityStatus.PENDING, response.status());
 
         verify(activityRepository).save(any(Activity.class));
     }
@@ -240,6 +241,7 @@ class ActivityServiceTest {
         assertEquals(90, response.estimatedDuration());
         assertEquals(4, response.difficulty());
         assertEquals(2, response.priority());
+        assertEquals(ActivityStatus.PENDING, response.status());
 
         verify(activityRepository).findById(ACTIVITY_ID);
         verify(activityRepository).save(activity);
@@ -424,7 +426,7 @@ class ActivityServiceTest {
                 .estimatedDuration(60)
                 .difficulty(3)
                 .priority(1)
-                .active(true)
+                .status(ActivityStatus.PENDING)
                 .build();
     }
 

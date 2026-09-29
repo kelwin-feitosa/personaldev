@@ -110,7 +110,7 @@ public class ActivityService {
                 activity.getEstimatedDuration(),
                 activity.getDifficulty(),
                 activity.getPriority(),
-                activity.isActive(),
+                activity.getStatus(),
                 activity.getCreatedAt(),
                 activity.getUpdatedAt()
         );

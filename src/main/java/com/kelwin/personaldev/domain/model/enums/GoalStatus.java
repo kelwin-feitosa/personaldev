@@ -1,4 +1,4 @@
-package com.kelwin.personaldev.domain.model;
+package com.kelwin.personaldev.domain.model.enums;
 
 public enum GoalStatus {
     ACTIVE,

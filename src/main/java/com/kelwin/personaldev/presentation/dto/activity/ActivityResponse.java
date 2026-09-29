@@ -3,6 +3,8 @@ package com.kelwin.personaldev.presentation.dto.activity;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import com.kelwin.personaldev.domain.model.enums.ActivityStatus;
+
 public record ActivityResponse(
     UUID id,
     UUID userId,
@@ -12,7 +14,7 @@ public record ActivityResponse(
     Integer estimatedDuration,
     Integer difficulty,
     Integer priority,
-    boolean active,
+    ActivityStatus status,
     LocalDateTime createdAt,
     LocalDateTime updatedAt
 ) {

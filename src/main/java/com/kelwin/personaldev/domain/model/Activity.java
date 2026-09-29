@@ -2,6 +2,8 @@ package com.kelwin.personaldev.domain.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
@@ -17,6 +19,8 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
+
+import com.kelwin.personaldev.domain.model.enums.ActivityStatus;
 
 @Entity
 @Table(name = "activities")
@@ -50,8 +54,9 @@ public class Activity {
 
     private Integer priority;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private boolean active;
+    private ActivityStatus status;
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -64,7 +69,7 @@ public class Activity {
         LocalDateTime now = LocalDateTime.now();
         createdAt = now;
         updatedAt = now;
-        active = true;
+        status = ActivityStatus.PENDING;
     }
 
     @PreUpdate

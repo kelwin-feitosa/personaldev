@@ -4,7 +4,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import com.kelwin.personaldev.domain.model.GoalStatus;
+import com.kelwin.personaldev.domain.model.enums.GoalStatus;
 
 public record GoalResponse(
     UUID id,

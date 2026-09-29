@@ -1,8 +1,8 @@
 package com.kelwin.personaldev.application.service;
 
 import com.kelwin.personaldev.domain.model.Goal;
-import com.kelwin.personaldev.domain.model.GoalStatus;
 import com.kelwin.personaldev.domain.model.User;
+import com.kelwin.personaldev.domain.model.enums.GoalStatus;
 import com.kelwin.personaldev.domain.repository.GoalRepository;
 import com.kelwin.personaldev.domain.repository.UserRepository;
 import com.kelwin.personaldev.presentation.dto.goal.GoalCreateRequest;

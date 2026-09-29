@@ -4,6 +4,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
+
+import com.kelwin.personaldev.domain.model.enums.GoalStatus;
+
 import java.util.ArrayList;
 
 import jakarta.persistence.Column;

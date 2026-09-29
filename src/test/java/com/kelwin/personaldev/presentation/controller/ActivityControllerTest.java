@@ -1,6 +1,7 @@
 package com.kelwin.personaldev.presentation.controller;
 
 import com.kelwin.personaldev.application.service.ActivityService;
+import com.kelwin.personaldev.domain.model.enums.ActivityStatus;
 import com.kelwin.personaldev.presentation.dto.activity.ActivityResponse;
 import com.kelwin.personaldev.presentation.exception.GlobalExceptionHandler;
 import com.kelwin.personaldev.presentation.exception.ResourceNotFoundException;
@@ -70,7 +71,7 @@ class ActivityControllerTest {
                 .andExpect(jsonPath("$.estimatedDuration").value(60))
                 .andExpect(jsonPath("$.difficulty").value(3))
                 .andExpect(jsonPath("$.priority").value(1))
-                .andExpect(jsonPath("$.active").value(true));
+                .andExpect(jsonPath("$.status").value("PENDING"));
 
         verify(activityService).create(any());
     }
@@ -89,7 +90,7 @@ class ActivityControllerTest {
                 90,
                 4,
                 2,
-                true,
+                ActivityStatus.PENDING,
                 LocalDateTime.now(),
                 LocalDateTime.now()
         );
@@ -121,7 +122,7 @@ class ActivityControllerTest {
                 .andExpect(jsonPath("$.userId").value(USER_ID.toString()))
                 .andExpect(jsonPath("$.goalId").value(GOAL_ID.toString()))
                 .andExpect(jsonPath("$.title").value("Estudar Collections"))
-                .andExpect(jsonPath("$.active").value(true));
+                .andExpect(jsonPath("$.status").value("PENDING"));
     }
 
     @Test
@@ -170,7 +171,7 @@ class ActivityControllerTest {
                 60,
                 3,
                 1,
-                true,
+                ActivityStatus.PENDING,
                 LocalDateTime.now(),
                 LocalDateTime.now()
         );

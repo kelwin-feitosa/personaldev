@@ -1,7 +1,7 @@
 package com.kelwin.personaldev.presentation.controller;
 
 import com.kelwin.personaldev.application.service.GoalService;
-import com.kelwin.personaldev.domain.model.GoalStatus;
+import com.kelwin.personaldev.domain.model.enums.GoalStatus;
 import com.kelwin.personaldev.presentation.dto.goal.GoalResponse;
 import com.kelwin.personaldev.presentation.exception.GlobalExceptionHandler;
 import com.kelwin.personaldev.presentation.exception.ResourceNotFoundException;

@@ -3,7 +3,7 @@ package com.kelwin.personaldev.presentation.dto.goal;
 import java.time.LocalDate;
 import java.util.UUID;
 
-import com.kelwin.personaldev.domain.model.GoalStatus;
+import com.kelwin.personaldev.domain.model.enums.GoalStatus;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
