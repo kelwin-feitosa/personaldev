@@ -27,11 +27,13 @@ public class KnowledgeService {
                         new ResourceNotFoundException("User not found"));
 
         Knowledge knowledge = Knowledge.builder()
-                .user(user)
-                .title(request.title())
-                .description(request.description())
-                .createdAt(LocalDateTime.now())
-                .build();
+            .user(user)
+            .title(request.title())
+            .description(request.description())
+            .createdAt(LocalDateTime.now())
+            .nextReviewAt(LocalDateTime.now().plusDays(1))
+            .reviewIntervalDays(1)
+            .build();
 
         Knowledge savedKnowledge = knowledgeRepository.save(knowledge);
 
@@ -82,7 +84,9 @@ public class KnowledgeService {
                 knowledge.getUser().getId(),
                 knowledge.getTitle(),
                 knowledge.getDescription(),
-                knowledge.getCreatedAt()
+                knowledge.getCreatedAt(),
+                knowledge.getNextReviewAt(),
+                knowledge.getReviewIntervalDays()
         );
     }
 }

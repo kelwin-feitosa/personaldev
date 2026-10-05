@@ -8,6 +8,8 @@ public record KnowledgeResponse(
         UUID userId,
         String title,
         String description,
-        LocalDateTime createdAt
+        LocalDateTime createdAt,
+        LocalDateTime nextReviewAt,
+        Integer reviewIntervalDays
 ) {
 }

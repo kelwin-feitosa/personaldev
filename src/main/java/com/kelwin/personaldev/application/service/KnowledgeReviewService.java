@@ -30,10 +30,17 @@ public class KnowledgeReviewService {
                         new ResourceNotFoundException("Knowledge not found"));
 
         KnowledgeReview review = KnowledgeReview.builder()
-                .knowledge(knowledge)
-                .reviewedAt(LocalDateTime.now())
-                .performance(request.performance())
-                .build();
+            .knowledge(knowledge)
+            .reviewedAt(LocalDateTime.now())
+            .performance(request.performance())
+            .build();
+
+        knowledge.registerReview(
+                request.performance(),
+                review.getReviewedAt()
+        );
+
+        knowledgeRepository.save(knowledge);
 
         KnowledgeReview savedReview = reviewRepository.save(review);
 
