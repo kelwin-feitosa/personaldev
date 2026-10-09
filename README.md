@@ -1,228 +1,184 @@
 # PersonalDev
 
-Aplicação pessoal voltada para organização de objetivos, atividades, desenvolvimento de hábitos de estudo e gerenciamento de conhecimento.
+Aplicação pessoal para organização de objetivos, atividades, desenvolvimento de hábitos de estudo e gerenciamento de conhecimento.
 
-O projeto também serve como ambiente prático para aplicar e aprofundar conceitos de Engenharia de Software, desenvolvimento backend, banco de dados, testes, integração contínua e, futuramente, estatística e Machine Learning.
-
----
+O PersonalDev também funciona como um projeto prático de Engenharia de Software, permitindo aplicar conceitos de desenvolvimento backend, modelagem de domínio, bancos de dados relacionais, testes automatizados, integração contínua e, futuramente, estatística e Machine Learning.
 
 ## 🎯 Objetivo
 
 O PersonalDev busca ajudar o usuário a:
 
-- Organizar objetivos e atividades;
-- Registrar o que pretende fazer e o que realmente fez;
-- Acompanhar a execução das atividades;
-- Reduzir a procrastinação através de sugestões de atividades alternativas;
-- Registrar conhecimentos aprendidos;
-- Revisar conhecimentos de forma adaptativa;
-- Utilizar dados históricos para futuramente melhorar as sugestões através de estatística e Machine Learning.
+- Organizar objetivos e atividades pessoais.
+- Definir prioridades e acompanhar prazos.
+- Registrar o que pretende fazer e o que realmente realizou.
+- Comparar o planejamento com o tempo efetivamente utilizado.
+- Gerenciar conhecimentos e materiais de estudo.
+- Revisar conhecimentos de forma adaptativa.
+- Construir um histórico de utilização que permita melhorar futuras recomendações.
 
-A ideia é que o sistema evolua gradualmente, começando com regras determinísticas e utilizando abordagens mais inteligentes conforme dados reais de uso forem acumulados.
-
----
+O desenvolvimento segue uma abordagem incremental: primeiro são implementadas regras determinísticas e funcionalidades confiáveis; posteriormente, dados reais poderão ser utilizados para desenvolver mecanismos mais inteligentes de recomendação.
 
 ## 🧠 Conceito
 
-O sistema será baseado principalmente em dois fluxos.
+O sistema possui dois fluxos principais.
 
 ### Gestão de atividades
 
 ```text
 Objetivos
-   ↓
+    ↓
 Atividades
-   ↓
-Contexto atual
-   ↓
-Sugestão de atividade
-   ↓
+    ↓
+Planejamento e priorização
+    ↓
 Execução
-   ↓
-Registro dos resultados
-   ↓
-Melhores sugestões futuras
+    ↓
+Registro do tempo e dos resultados
+    ↓
+Histórico de utilização
+    ↓
+Recomendações futuras
 ```
 
 ### Gestão de conhecimento
 
 ```text
-Conhecimento aprendido
-   ↓
-Revisões
-   ↓
+Conhecimento
+    ↓
+Revisão
+    ↓
 Avaliação de desempenho
-   ↓
-Estimativa de retenção
-   ↓
+    ↓
+Atualização do intervalo de revisão
+    ↓
 Próxima revisão
-   ↓
+    ↓
 Histórico de aprendizagem
 ```
 
-As atividades e os conhecimentos são tratados como conceitos diferentes.
-
-Uma atividade representa uma ação que o usuário pretende realizar, enquanto um conhecimento representa algo que o usuário aprendeu e deseja manter.
-
----
+Atividades e conhecimentos são conceitos distintos. Uma atividade representa uma ação que o usuário pretende realizar; um conhecimento representa algo aprendido que se deseja preservar ao longo do tempo.
 
 ## 🏗️ Arquitetura
 
-A aplicação segue inicialmente uma organização baseada em domínio, aplicação e apresentação.
+O backend é organizado em três camadas principais:
+
+- **Domain:** entidades, enums e interfaces de repositório.
+- **Application:** serviços que coordenam os casos de uso e aplicam regras de negócio.
+- **Presentation:** controllers REST, DTOs, validação de entrada e tratamento de exceções.
+
+Estrutura principal:
 
 ```text
 src/
 ├── main/
-│   ├── java/
-│   │   └── com/kelwin/personaldev/
-│   │       ├── domain/
-│   │       │   ├── model/
-│   │       │   └── repository/
-│   │       │
-│   │       ├── application/
-│   │       │   └── service/
-│   │       │
-│   │       └── presentation/
-│   │           ├── controller/
-│   │           ├── dto/
-│   │           └── exception/
-│   │
+│   ├── java/com/kelwin/personaldev/
+│   │   ├── domain/
+│   │   │   ├── model/enums/
+│   │   │   └── repository/
+│   │   ├── application/
+│   │   │   └── service/
+│   │   └── presentation/
+│   │       ├── controller/
+│   │       ├── dto/
+│   │       └── exception/
 │   └── resources/
-│       ├── db/
-│       │   └── migration/
+│       ├── db/migration/
 │       ├── application.properties
 │       └── application-dev.properties
-│
 └── test/
+    └── java/com/kelwin/personaldev/
 ```
 
-A estrutura poderá evoluir conforme novas necessidades surgirem.
+A estrutura poderá evoluir conforme novas necessidades surgirem, sem introduzir complexidade arquitetural desnecessária.
 
----
+## 📦 Modelo de domínio
 
-## 📦 Modelo atual do domínio
-
-Atualmente, o núcleo implementado é:
+O núcleo atual da aplicação inclui:
 
 ```text
 User
 ├── Goal
-│    └── Activity
-```
-
-A arquitetura planejada será expandida para:
-
-```text
-User
-├── Goal
-│    └── Activity
-│          └── ActivityExecution
-│
+│   ├── Goal
+│   │   └── Goal...
+│   └── Activity
+│       └── ActivityExecution...
 ├── Knowledge
-│      └── KnowledgeReview
-│
-└── UserState
+│   └── KnowledgeReview...
+└── UserState (planejado)
 ```
 
-As entidades `ActivityExecution`, `Knowledge`, `KnowledgeReview` e `UserState` fazem parte do modelo planejado e serão implementadas nas próximas etapas.
+As reticências representam a possibilidade de múltiplas entidades relacionadas. A hierarquia de `Goal` permite objetivos independentes, objetivos-pai e objetivos-filhos em diferentes níveis.
 
 ### User
 
-Representa o usuário da aplicação.
-
-Principais informações:
-
-- Nome;
-- E-mail;
-- Data de criação.
+Representa o usuário da aplicação, incluindo informações de identificação e criação.
 
 ### Goal
 
 Representa um objetivo que o usuário deseja alcançar.
 
-Possui informações como:
+Principais características:
 
-- Título;
-- Descrição;
-- Status;
-- Prioridade;
-- Prazo.
+- Título e descrição.
+- Status e prioridade.
+- Prazo opcional.
+- Tipo de prazo: fixo (`FIXED`) ou flexível (`FLEXIBLE`).
+- Relacionamento opcional com um objetivo-pai.
+- Relacionamento com objetivos-filhos.
+- Associação com atividades.
+
+As regras de negócio impedem ciclos na hierarquia, restringem o relacionamento pai-filho a objetivos do mesmo usuário e protegem contra a exclusão de objetivos que ainda possuem filhos.
+
+O prazo flexível representa uma data que pode ser ajustada pelo usuário; o prazo fixo representa uma data que deve ser tratada como uma restrição mais rígida.
 
 ### Activity
 
-Representa uma atividade relacionada ou não a um objetivo.
+Representa uma ação que o usuário pretende realizar, associada ou não a um objetivo.
 
-Possui informações como:
+Entre suas características estão:
 
-- Título;
-- Descrição;
-- Duração estimada;
-- Dificuldade;
-- Prioridade;
-- Estado ativo/inativo.
+- Título e descrição.
+- Duração estimada.
+- Dificuldade e prioridade.
+- Status da atividade.
+- Prazo e demais informações de planejamento previstas no modelo.
 
-Uma atividade pode existir sem um objetivo associado.
-
-Quando possui um objetivo, o sistema garante que o objetivo pertença ao mesmo usuário da atividade.
+Uma atividade pode existir independentemente de um objetivo. Quando existe uma associação, o sistema valida se o objetivo pertence ao mesmo usuário.
 
 ### ActivityExecution
 
-Será responsável por registrar uma execução real de uma atividade.
+Registra uma execução real de uma atividade. Uma atividade pode possuir várias execuções, permitindo comparar estimativas com o tempo efetivamente gasto.
 
-Uma mesma atividade poderá possuir várias execuções.
-
-Por exemplo:
+Exemplo:
 
 ```text
-Activity
-"Estudar Spring Security"
+Activity: Estudar Spring Security
 Duração estimada: 180 minutos
 
-    ├── Execution 1
-    │   60 minutos — PARTIAL
-    │
-    ├── Execution 2
-    │   70 minutos — PARTIAL
-    │
-    └── Execution 3
-        50 minutos — COMPLETED
+├── Execução 1: 60 minutos
+├── Execução 2: 70 minutos
+└── Execução 3: 50 minutos
 ```
 
-Isso permitirá comparar o planejamento com o comportamento real do usuário.
+O histórico de execuções fornece dados para acompanhar o progresso e, futuramente, melhorar as estimativas de duração.
 
 ### Knowledge
 
-Representará um conhecimento que o usuário aprendeu e deseja manter.
+Representa um conhecimento que o usuário aprendeu e deseja manter.
 
-O conhecimento será independente das atividades, permitindo que uma mesma área de conhecimento seja revisada diversas vezes ao longo do tempo.
+O modelo permite gerenciar conhecimentos independentemente das atividades, favorecendo revisões recorrentes e a futura organização de relações entre conhecimentos e materiais de estudo.
 
 ### KnowledgeReview
 
-Representará uma revisão de um conhecimento.
+Registra uma revisão de conhecimento e seu desempenho.
 
-Cada revisão poderá registrar informações como:
-
-- Momento da revisão;
-- Desempenho;
-- Dificuldade percebida;
-- Confiança;
-- Próxima revisão.
-
-A frequência das revisões deverá se adaptar ao desempenho do usuário: conhecimentos lembrados com facilidade poderão ser revisados em intervalos maiores, enquanto conhecimentos com baixo desempenho terão maior prioridade.
+O sistema possui uma estrutura inicial de revisão adaptativa, incluindo o agendamento da próxima revisão e o intervalo entre revisões. A evolução desse mecanismo poderá considerar o histórico de desempenho para ajustar a frequência de revisão.
 
 ### UserState
 
-Representará informações observáveis sobre o contexto atual do usuário, como:
+Funcionalidade planejada para representar o contexto atual do usuário, como tempo disponível, energia, motivação e foco.
 
-- Energia;
-- Motivação;
-- Tempo disponível;
-- Foco;
-- Contexto da utilização.
-
-Essas informações poderão futuramente ser utilizadas pelo sistema de recomendação.
-
----
+Essas informações poderão apoiar um futuro sistema de recomendação de atividades.
 
 ## 🛠️ Tecnologias
 
@@ -230,235 +186,46 @@ Essas informações poderão futuramente ser utilizadas pelo sistema de recomend
 
 - Java 21
 - Spring Boot 4.1.1
-- Spring Data JPA
 - Spring Web MVC
+- Spring Data JPA
 - Bean Validation
 - Lombok
 
-### Banco de dados
+### Banco de dados e persistência
 
-- PostgreSQL 17
+- PostgreSQL
 - Docker
 - Docker Compose
 - Flyway
+- Hibernate
 
-### Testes
+### Testes e qualidade
 
 - JUnit 5
 - Mockito
 - Spring Boot Test
 - MockMvc
+- JaCoCo e ferramentas de análise de qualidade, conforme configuradas no projeto
 
-### Documentação
+### Documentação e ferramentas
 
 - OpenAPI
 - Swagger UI
-
-### Ferramentas
-
 - Maven
-- Git
-- GitHub
+- Git e GitHub
 - GitHub Actions
 
-### Futuramente
+### Tecnologias futuras
 
-- React
-- Estatística aplicada aos dados de uso
-- Machine Learning
+- React para a interface web.
+- Estatística aplicada ao histórico de utilização.
+- Machine Learning, quando houver dados suficientes e uma necessidade concreta.
 
----
+## 🗄️ Banco de dados e migrações
 
-## 🔄 Integração Contínua
+O PostgreSQL é executado por meio do Docker Compose. A aplicação utiliza variáveis de ambiente para configurar a conexão com o banco.
 
-O projeto utiliza GitHub Actions para validar automaticamente o código em `push` e `pull request` direcionados à branch `master`.
-
-O pipeline atualmente:
-
-1. Obtém o código do repositório;
-2. Configura o JDK 21;
-3. Utiliza cache do Maven;
-4. Inicia o PostgreSQL através do Docker Compose;
-5. Ativa o profile de teste;
-6. Executa `./mvnw verify`;
-7. Encerra os containers ao final da execução.
-
-Fluxo:
-
-```text
-Push / Pull Request
-        ↓
-GitHub Actions
-        ↓
-Checkout
-        ↓
-JDK 21
-        ↓
-PostgreSQL
-        ↓
-Profile de teste
-        ↓
-Maven Verify
-        ↓
-Build + Testes
-```
-
-O CI será evoluído conforme o projeto ganhar novas ferramentas de qualidade e verificações.
-
----
-
-## 🗄️ Banco de dados
-
-O PostgreSQL é executado através do Docker Compose.
-
-A aplicação utiliza variáveis de ambiente para configurar a conexão:
-
-```env
-DB_NAME=
-DB_USERNAME=
-DB_PASSWORD=
-DB_PORT=
-```
-
-O arquivo `.env` não deve ser versionado.
-
-Para facilitar a configuração de novos ambientes, o projeto possui um `.env.example`.
-
-### Porta
-
-O PostgreSQL utiliza a porta `5434` no host para evitar conflitos com outros bancos PostgreSQL locais.
-
-```text
-Host:      5434
-Container: 5432
-```
-
----
-
-## 🔄 Migrações
-
-O banco de dados é versionado utilizando Flyway.
-
-As migrations ficam em:
-
-```text
-src/main/resources/db/migration/
-```
-
-Migration inicial:
-
-```text
-V1__create_initial_schema.sql
-```
-
-O Hibernate está configurado com:
-
-```properties
-spring.jpa.hibernate.ddl-auto=validate
-```
-
-Isso significa que o Hibernate não é responsável por criar ou alterar o banco.
-
-A responsabilidade pela evolução do schema fica com o Flyway.
-
-O Hibernate apenas verifica se as entidades estão compatíveis com o schema existente.
-
----
-
-## 📖 Documentação da API
-
-A API utiliza OpenAPI e Swagger UI para documentação e testes manuais dos endpoints.
-
-Com a aplicação em execução:
-
-```text
-http://localhost:8080/swagger-ui.html
-```
-
-A especificação OpenAPI está disponível em:
-
-```text
-http://localhost:8080/v3/api-docs
-```
-
-### Endpoints atuais
-
-#### Users
-
-```text
-POST   /users
-GET    /users
-GET    /users/{id}
-PUT    /users/{id}
-DELETE /users/{id}
-```
-
-#### Goals
-
-```text
-POST   /goals
-GET    /goals
-GET    /goals/{id}
-PUT    /goals/{id}
-DELETE /goals/{id}
-```
-
-#### Activities
-
-```text
-POST   /activities
-GET    /activities
-GET    /activities/{id}
-PUT    /activities/{id}
-DELETE /activities/{id}
-```
-
----
-
-## ⚠️ Validação e tratamento de erros
-
-As requisições utilizam Bean Validation através de anotações como:
-
-- `@NotBlank`
-- `@NotNull`
-- `@Email`
-- `@Positive`
-
-O projeto possui tratamento global para:
-
-- Recursos não encontrados → `404 Not Found`;
-- Recursos duplicados → `409 Conflict`;
-- Regras de negócio violadas → `400 Bad Request`;
-- Erros de validação → `400 Bad Request`;
-- Erros inesperados → `500 Internal Server Error`.
-
-As regras de negócio também são validadas na camada de serviço.
-
-Por exemplo, uma atividade associada a um objetivo deve utilizar um objetivo pertencente ao mesmo usuário.
-
----
-
-## 🚀 Como executar
-
-### 1. Clonar o projeto
-
-```bash
-git clone <URL_DO_REPOSITORIO>
-
-cd personaldev
-```
-
-### 2. Configurar o ambiente
-
-Copie o arquivo de exemplo:
-
-```bash
-cp .env.example .env
-```
-
-Preencha as variáveis do `.env`.
-
-Exemplo:
+Exemplo de `.env`:
 
 ```env
 DB_NAME=personaldev
@@ -466,6 +233,133 @@ DB_USERNAME=postgres
 DB_PASSWORD=postgres
 DB_PORT=5434
 ```
+
+O banco utiliza a porta `5434` no host para evitar conflitos com outros bancos PostgreSQL locais. Dentro do container, a porta padrão é `5432`.
+
+O arquivo `.env` não deve ser versionado. O repositório disponibiliza um `.env.example` para orientar a configuração de novos ambientes.
+
+### Flyway
+
+As migrações estão localizadas em:
+
+```text
+src/main/resources/db/migration/
+```
+
+As migrations versionadas controlam a evolução do esquema do banco. Novas alterações devem ser adicionadas em novas migrations, sem modificar migrations que já foram aplicadas em ambientes existentes.
+
+O Hibernate utiliza:
+
+```properties
+spring.jpa.hibernate.ddl-auto=validate
+```
+
+Assim, o Hibernate verifica a compatibilidade entre as entidades e o esquema existente, enquanto o Flyway é responsável pela evolução do banco de dados.
+
+## 📖 API REST
+
+A aplicação disponibiliza recursos REST para os principais componentes do domínio:
+
+- Usuários (`User`).
+- Objetivos (`Goal`).
+- Atividades (`Activity`).
+- Execuções de atividades (`ActivityExecution`).
+- Conhecimentos (`Knowledge`).
+- Revisões de conhecimento (`KnowledgeReview`).
+
+A documentação interativa é disponibilizada pelo Swagger UI.
+
+Com a aplicação em execução:
+
+- Swagger UI: `http://localhost:8080/swagger-ui.html`
+- OpenAPI: `http://localhost:8080/v3/api-docs`
+
+Os endpoints, parâmetros e formatos de requisição devem ser consultados na documentação gerada pela própria aplicação.
+
+## ⚠️ Validação e tratamento de erros
+
+O projeto utiliza Bean Validation, com anotações como `@NotBlank`, `@NotNull`, `@Email` e `@Positive`, conforme as regras de cada DTO.
+
+O tratamento global de exceções contempla categorias como:
+
+- Recursos inexistentes: `404 Not Found`.
+- Recursos duplicados: `409 Conflict`.
+- Violações de regras de negócio: `400 Bad Request`.
+- Erros de validação: `400 Bad Request`.
+- Erros inesperados: `500 Internal Server Error`.
+
+As regras de negócio são aplicadas na camada de serviços, evitando depender exclusivamente da validação das requisições.
+
+## 🧪 Testes automatizados
+
+Os testes são desenvolvidos junto com as funcionalidades.
+
+A estrutura de testes contempla as camadas de serviço e apresentação, incluindo testes para os principais recursos do domínio.
+
+### Testes de serviços
+
+Verificam comportamentos como:
+
+- Criação, consulta, atualização e exclusão.
+- Tratamento de recursos inexistentes e duplicados.
+- Validação de relacionamentos entre entidades.
+- Aplicação de regras de negócio.
+- Restrições da hierarquia de objetivos.
+
+### Testes de controllers
+
+Utilizam MockMvc para verificar:
+
+- Requisições HTTP.
+- Status HTTP.
+- Estrutura do JSON de resposta.
+- Validação das requisições.
+- Tratamento de exceções.
+
+Para executar os testes:
+
+```bash
+./mvnw test
+```
+
+Para executar o ciclo de verificação do projeto:
+
+```bash
+./mvnw verify
+```
+
+## 🔄 Integração contínua
+
+O projeto utiliza GitHub Actions para executar verificações automatizadas em eventos configurados no repositório, incluindo pushes e pull requests direcionados à branch `master`.
+
+O pipeline contempla:
+
+1. Checkout do repositório.
+2. Configuração do JDK 21.
+3. Cache de dependências do Maven.
+4. Inicialização do PostgreSQL via Docker Compose.
+5. Ativação do profile de teste.
+6. Execução de `./mvnw verify`.
+7. Encerramento dos containers ao final da execução.
+
+O objetivo é detectar regressões e validar a integração entre código, banco de dados e testes antes de considerar uma alteração concluída.
+
+## 🚀 Como executar
+
+### 1. Clonar o repositório
+
+```bash
+git clone https://github.com/kelwin-feitosa/personaldev.git
+cd personaldev
+```
+
+### 2. Configurar as variáveis de ambiente
+
+```bash
+cp .env.example .env
+```
+
+Preencha o arquivo `.env` com os valores adequados ao ambiente local.
 
 ### 3. Iniciar o PostgreSQL
 
@@ -483,197 +377,102 @@ Linux/macOS:
 
 Windows:
 
-```bash
+```bat
 mvnw.cmd spring-boot:run
 ```
 
-Durante a inicialização, o Flyway executará as migrations pendentes e o Hibernate validará o schema.
-
----
-
-## 🧪 Testes
-
-Os testes são desenvolvidos junto com as funcionalidades da aplicação.
-
-A estrutura atual inclui testes para Services e Controllers:
-
-```text
-src/test/java/com/kelwin/personaldev/
-├── application/
-│   └── service/
-│       ├── UserServiceTest
-│       ├── GoalServiceTest
-│       └── ActivityServiceTest
-│
-└── presentation/
-    └── controller/
-        ├── UserControllerTest
-        ├── GoalControllerTest
-        └── ActivityControllerTest
-```
-
-### Service Tests
-
-Os testes dos Services verificam principalmente:
-
-- Criação de recursos;
-- Busca de recursos;
-- Atualização de recursos;
-- Exclusão de recursos;
-- Recursos inexistentes;
-- Recursos duplicados;
-- Relacionamentos entre entidades;
-- Regras de negócio.
-
-### Controller Tests
-
-Os testes dos Controllers utilizam `MockMvc` para verificar:
-
-- Requisições HTTP;
-- Status HTTP;
-- JSON de resposta;
-- Validação das requisições;
-- Tratamento de exceções.
-
-As responsabilidades das camadas são testadas de forma isolada para evitar duplicação desnecessária.
-
-Para executar os testes:
-
-```bash
-./mvnw test
-```
-
-Para executar o ciclo completo de build:
-
-```bash
-./mvnw verify
-```
-
----
+Durante a inicialização, o Flyway executa as migrações pendentes e o Hibernate valida o esquema do banco.
 
 ## 🗺️ Roadmap
 
-### MVP 1 — Estrutura básica
+### Etapa 1 — Estrutura e persistência
 
-- [x] Configuração inicial do projeto
-- [x] PostgreSQL
-- [x] Docker Compose
-- [x] Variáveis de ambiente
-- [x] Profiles
-- [x] Flyway
-- [x] Migration inicial
-- [x] Entidade `User`
-- [x] Entidade `Goal`
-- [x] Entidade `Activity`
-- [x] Repositories
-- [x] Services
-- [x] DTOs
-- [x] Controllers
-- [x] Validações
-- [x] Tratamento global de exceções
-- [x] Regras de negócio entre entidades
-- [x] Swagger/OpenAPI
-- [x] Testes dos Services
-- [x] Testes dos Controllers
-- [x] GitHub Actions
+- [x] Configuração inicial do projeto.
+- [x] PostgreSQL e Docker Compose.
+- [x] Variáveis de ambiente e profiles.
+- [x] Flyway e migrações versionadas.
+- [x] Entidades e repositórios principais.
+- [x] Serviços e DTOs.
+- [x] Controllers REST.
+- [x] Validações e tratamento global de exceções.
+- [x] Testes de serviços e controllers.
+- [x] Documentação OpenAPI/Swagger.
+- [x] Integração contínua.
+- [x] Hierarquia de objetivos.
+- [x] Tipos de prazo fixo e flexível.
 
-### MVP 2 — Registro e acompanhamento
+### Etapa 2 — Acompanhamento e aprendizagem
 
-- [ ] `ActivityExecution`
-- [ ] Histórico de execução
-- [ ] `Knowledge`
-- [ ] `KnowledgeReview`
-- [ ] Sistema adaptativo de revisão
-- [ ] `UserState`
+- [x] Registro de execuções de atividades.
+- [x] Histórico de execuções.
+- [x] Gerenciamento de conhecimentos.
+- [x] Registro de revisões.
+- [x] Estrutura inicial de revisão adaptativa.
+- [ ] Evoluir os critérios de adaptação dos intervalos.
+- [ ] Ampliar as relações entre conhecimentos e materiais de estudo.
+- [ ] Implementar o modelo de contexto do usuário (`UserState`).
 
-### MVP 3 — Recomendações
+### Etapa 3 — Recomendações
 
-Inicialmente, as recomendações serão baseadas em regras determinísticas.
+Inicialmente, as recomendações deverão utilizar regras determinísticas, considerando fatores como:
 
-O sistema poderá considerar fatores como:
-
-- Prioridade;
-- Tempo disponível;
-- Duração estimada;
-- Dificuldade;
-- Prazo;
-- Necessidade de revisão;
+- Prioridade e prazo.
+- Duração estimada.
+- Tempo disponível.
 - Contexto atual do usuário.
+- Histórico de execuções.
+- Necessidade de revisão de conhecimentos.
 
-Posteriormente, conforme dados reais forem acumulados:
+A evolução pretendida é:
 
 ```text
 Regras determinísticas
         ↓
-Estatística
+Coleta de dados reais
         ↓
-Machine Learning
+Análise estatística
+        ↓
+Modelos adaptativos
+        ↓
+Machine Learning, se justificado
 ```
 
-Machine Learning será utilizado apenas quando houver dados suficientes e uma necessidade clara de adaptação além das regras existentes.
+O objetivo é evitar a introdução de modelos complexos antes de existir uma base de dados adequada e uma necessidade demonstrável.
 
-### MVP 4 — Frontend
+### Etapa 4 — Interface web
 
-- [ ] Interface web
-- [ ] Dashboard
-- [ ] Gestão de objetivos
-- [ ] Gestão de atividades
-- [ ] Registro de execução
-- [ ] Gestão de conhecimentos
-- [ ] Revisões
-- [ ] Visualização de histórico
-- [ ] Sistema de recomendações
+- [ ] Desenvolver a interface com React.
+- [ ] Criar dashboard de objetivos e atividades.
+- [ ] Disponibilizar registro e consulta de execuções.
+- [ ] Criar telas para conhecimentos e revisões.
+- [ ] Apresentar histórico e indicadores de progresso.
+- [ ] Integrar as recomendações à interface.
 
----
+## 📚 Objetivos de aprendizado
 
-## 📚 Objetivo de aprendizado
+O PersonalDev também é um ambiente de prática para aprofundar conhecimentos em:
 
-Além de ser uma aplicação de uso pessoal, o PersonalDev será utilizado como projeto de estudo para praticar conceitos de Engenharia de Software.
+- Modelagem de domínio e regras de negócio.
+- Arquitetura de aplicações.
+- APIs REST.
+- Persistência com JPA e Hibernate.
+- Bancos de dados relacionais.
+- Migrações de esquema.
+- Validação e tratamento de erros.
+- Testes automatizados.
+- Integração contínua.
+- Qualidade e manutenção de código.
+- Análise estatística de dados.
+- Sistemas de recomendação e Machine Learning.
 
-Entre eles:
+A complexidade será adicionada gradualmente, priorizando soluções compreensíveis, testáveis e justificadas por necessidades reais.
 
-- Modelagem de domínio;
-- Arquitetura de aplicações;
-- APIs REST;
-- Persistência de dados;
-- Banco de dados relacionais;
-- Migrações;
-- Validação;
-- Testes automatizados;
-- Integração contínua;
-- Qualidade de código;
-- Organização de projetos;
-- Estatística;
-- Machine Learning.
+## 📌 Status do projeto
 
-A complexidade do projeto será aumentada gradualmente, evitando adicionar tecnologias sem uma necessidade concreta.
+**Em desenvolvimento — evolução do backend e das funcionalidades de acompanhamento e aprendizagem.**
 
----
+O projeto já possui uma base de backend com persistência em PostgreSQL, migrações Flyway, entidades de domínio, serviços, endpoints REST, validações, testes automatizados e integração contínua.
 
-## 📌 Status
+Também contempla hierarquia de objetivos, prazos fixos e flexíveis, registro de execuções de atividades e um mecanismo inicial de revisão adaptativa de conhecimentos.
 
-**Em desenvolvimento — construção do núcleo do backend.**
-
-Atualmente o projeto possui:
-
-- Estrutura inicial de domínio;
-- Entidades `User`, `Goal` e `Activity`;
-- PostgreSQL executando via Docker;
-- Configuração por variáveis de ambiente;
-- Profiles de aplicação e teste;
-- Flyway configurado;
-- Migration inicial;
-- Validação do schema através do Hibernate;
-- Repositories;
-- Services;
-- DTOs;
-- Controllers REST;
-- Validação das requisições;
-- Tratamento global de exceções;
-- Validação de regras de negócio;
-- Documentação com Swagger/OpenAPI;
-- Testes automatizados dos Services;
-- Testes automatizados dos Controllers;
-- Pipeline de CI com GitHub Actions.
-
-O próximo passo do desenvolvimento é implementar o registro das execuções das atividades através de `ActivityExecution`.
+As próximas etapas concentram-se em amadurecer as regras de negócio, melhorar o acompanhamento do progresso, desenvolver o contexto do usuário e construir uma base sólida para futuras recomendações personalizadas.
