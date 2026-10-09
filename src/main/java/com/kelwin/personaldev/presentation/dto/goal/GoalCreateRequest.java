@@ -3,6 +3,7 @@ package com.kelwin.personaldev.presentation.dto.goal;
 import java.time.LocalDate;
 import java.util.UUID;
 
+import com.kelwin.personaldev.domain.model.enums.GoalDeadlineType;
 import com.kelwin.personaldev.domain.model.enums.GoalStatus;
 
 import jakarta.validation.constraints.NotBlank;
@@ -10,22 +11,27 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 
 public record GoalCreateRequest(
-    @NotBlank
-    String title,
 
-    String description,
+        @NotBlank
+        String title,
 
-    @NotNull
-    GoalStatus status,
+        String description,
 
-    @NotNull
-    @Positive
-    Integer priority,
+        @NotNull
+        GoalStatus status,
 
-    LocalDate deadline,
+        @NotNull
+        @Positive
+        Integer priority,
 
-    @NotNull
-    UUID userId
+        LocalDate deadline,
+
+        GoalDeadlineType deadlineType,
+
+        UUID parentGoalId,
+
+        @NotNull
+        UUID userId
+
 ) {
-
 }

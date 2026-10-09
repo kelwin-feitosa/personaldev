@@ -1,13 +1,14 @@
+
 package com.kelwin.personaldev.domain.model;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import com.kelwin.personaldev.domain.model.enums.GoalDeadlineType;
 import com.kelwin.personaldev.domain.model.enums.GoalStatus;
-
-import java.util.ArrayList;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -27,20 +28,20 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-@Entity 
-@Table (name = "goals")
-@Getter 
-@NoArgsConstructor 
-@AllArgsConstructor 
-@Builder 
+@Entity
+@Table(name = "goals")
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Goal {
 
-    @Id 
+    @Id
     @GeneratedValue
     private UUID id;
 
-    @ManyToOne (fetch = FetchType.LAZY, optional = false)
-    @JoinColumn (name = "user_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     @Column(nullable = false)
@@ -49,7 +50,7 @@ public class Goal {
     @Column(length = 1000)
     private String description;
 
-    @Enumerated (EnumType.STRING)
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private GoalStatus status;
 
@@ -58,24 +59,37 @@ public class Goal {
 
     private LocalDate deadline;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    @Builder.Default
+    private GoalDeadlineType deadlineType = GoalDeadlineType.FLEXIBLE;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_goal_id")
+    private Goal parentGoal;
+
+    @OneToMany(mappedBy = "parentGoal")
+    @Builder.Default
+    private List<Goal> childGoals = new ArrayList<>();
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    @Column (nullable = false)
+    @Column(nullable = false)
     private LocalDateTime updatedAt;
 
-    @OneToMany (mappedBy = "goal")
+    @OneToMany(mappedBy = "goal")
     @Builder.Default
     private List<Activity> activities = new ArrayList<>();
 
-    @PrePersist 
+    @PrePersist
     protected void onCreate() {
         LocalDateTime now = LocalDateTime.now();
         createdAt = now;
         updatedAt = now;
     }
 
-    @PreUpdate 
+    @PreUpdate
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
     }
@@ -85,12 +99,16 @@ public class Goal {
             String description,
             GoalStatus status,
             Integer priority,
-            LocalDate deadline
+            LocalDate deadline,
+            GoalDeadlineType deadlineType,
+            Goal parentGoal
     ) {
         this.title = title;
         this.description = description;
         this.status = status;
         this.priority = priority;
         this.deadline = deadline;
+        this.deadlineType = deadlineType;
+        this.parentGoal = parentGoal;
     }
 }

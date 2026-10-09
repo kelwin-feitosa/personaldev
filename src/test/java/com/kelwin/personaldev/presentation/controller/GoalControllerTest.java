@@ -1,10 +1,13 @@
+
 package com.kelwin.personaldev.presentation.controller;
 
 import com.kelwin.personaldev.application.service.GoalService;
+import com.kelwin.personaldev.domain.model.enums.GoalDeadlineType;
 import com.kelwin.personaldev.domain.model.enums.GoalStatus;
 import com.kelwin.personaldev.presentation.dto.goal.GoalResponse;
 import com.kelwin.personaldev.presentation.exception.GlobalExceptionHandler;
 import com.kelwin.personaldev.presentation.exception.ResourceNotFoundException;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -33,6 +36,9 @@ class GoalControllerTest {
     private static final UUID GOAL_ID =
             UUID.fromString("22222222-2222-2222-2222-222222222222");
 
+    private static final UUID CHILD_GOAL_ID =
+            UUID.fromString("33333333-3333-3333-3333-333333333333");
+
     @Autowired
     private MockMvc mockMvc;
 
@@ -41,7 +47,6 @@ class GoalControllerTest {
 
     @Test
     void shouldCreateGoal() throws Exception {
-
         GoalResponse response = createGoalResponse();
 
         when(goalService.create(any()))
@@ -65,24 +70,30 @@ class GoalControllerTest {
                 .andExpect(jsonPath("$.title").value("Aprender Java"))
                 .andExpect(jsonPath("$.description").value("Estudar Java e Spring"))
                 .andExpect(jsonPath("$.status").value("ACTIVE"))
-                .andExpect(jsonPath("$.priority").value(1));
+                .andExpect(jsonPath("$.priority").value(1))
+                .andExpect(jsonPath("$.deadlineType").value("FLEXIBLE"))
+                .andExpect(jsonPath("$.parentGoalId").doesNotExist())
+                .andExpect(jsonPath("$.childGoalIds").isArray())
+                .andExpect(jsonPath("$.childGoalIds").isEmpty());
 
         verify(goalService).create(any());
     }
 
     @Test
     void shouldReturnAllGoals() throws Exception {
-
         GoalResponse goal1 = createGoalResponse();
 
         GoalResponse goal2 = new GoalResponse(
-                UUID.fromString("33333333-3333-3333-3333-333333333333"),
+                CHILD_GOAL_ID,
                 USER_ID,
                 "Aprender Python",
                 "Estudar Python",
                 GoalStatus.ACTIVE,
                 2,
                 LocalDate.of(2026, 12, 31),
+                GoalDeadlineType.FIXED,
+                GOAL_ID,
+                List.of(),
                 LocalDateTime.now(),
                 LocalDateTime.now()
         );
@@ -96,13 +107,15 @@ class GoalControllerTest {
                 .andExpect(jsonPath("$.length()").value(2))
                 .andExpect(jsonPath("$[0].id").value(GOAL_ID.toString()))
                 .andExpect(jsonPath("$[0].title").value("Aprender Java"))
-                .andExpect(jsonPath("$[1].id").value("33333333-3333-3333-3333-333333333333"))
-                .andExpect(jsonPath("$[1].title").value("Aprender Python"));
+                .andExpect(jsonPath("$[0].deadlineType").value("FLEXIBLE"))
+                .andExpect(jsonPath("$[1].id").value(CHILD_GOAL_ID.toString()))
+                .andExpect(jsonPath("$[1].title").value("Aprender Python"))
+                .andExpect(jsonPath("$[1].deadlineType").value("FIXED"))
+                .andExpect(jsonPath("$[1].parentGoalId").value(GOAL_ID.toString()));
     }
 
     @Test
     void shouldReturnGoalById() throws Exception {
-
         GoalResponse response = createGoalResponse();
 
         when(goalService.findById(GOAL_ID))
@@ -113,19 +126,19 @@ class GoalControllerTest {
                 .andExpect(jsonPath("$.id").value(GOAL_ID.toString()))
                 .andExpect(jsonPath("$.userId").value(USER_ID.toString()))
                 .andExpect(jsonPath("$.title").value("Aprender Java"))
-                .andExpect(jsonPath("$.status").value("ACTIVE"));
+                .andExpect(jsonPath("$.status").value("ACTIVE"))
+                .andExpect(jsonPath("$.deadlineType").value("FLEXIBLE"))
+                .andExpect(jsonPath("$.parentGoalId").doesNotExist())
+                .andExpect(jsonPath("$.childGoalIds").isArray());
     }
 
     @Test
     void shouldReturnNotFoundWhenGoalDoesNotExist() throws Exception {
-
         UUID nonExistentGoalId =
                 UUID.fromString("99999999-9999-9999-9999-999999999999");
 
         when(goalService.findById(nonExistentGoalId))
-                .thenThrow(
-                        new ResourceNotFoundException("Goal not found")
-                );
+                .thenThrow(new ResourceNotFoundException("Goal not found"));
 
         mockMvc.perform(get("/goals/" + nonExistentGoalId))
                 .andExpect(status().isNotFound())
@@ -134,7 +147,6 @@ class GoalControllerTest {
 
     @Test
     void shouldReturnBadRequestWhenRequestIsInvalid() throws Exception {
-
         mockMvc.perform(post("/goals")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -151,7 +163,6 @@ class GoalControllerTest {
     }
 
     private GoalResponse createGoalResponse() {
-
         return new GoalResponse(
                 GOAL_ID,
                 USER_ID,
@@ -160,6 +171,9 @@ class GoalControllerTest {
                 GoalStatus.ACTIVE,
                 1,
                 LocalDate.of(2026, 12, 31),
+                GoalDeadlineType.FLEXIBLE,
+                null,
+                List.of(),
                 LocalDateTime.now(),
                 LocalDateTime.now()
         );

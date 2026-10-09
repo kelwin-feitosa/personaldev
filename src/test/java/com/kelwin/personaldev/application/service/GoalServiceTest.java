@@ -1,13 +1,17 @@
+
 package com.kelwin.personaldev.application.service;
 
 import com.kelwin.personaldev.domain.model.Goal;
 import com.kelwin.personaldev.domain.model.User;
+import com.kelwin.personaldev.domain.model.enums.GoalDeadlineType;
 import com.kelwin.personaldev.domain.model.enums.GoalStatus;
 import com.kelwin.personaldev.domain.repository.GoalRepository;
 import com.kelwin.personaldev.domain.repository.UserRepository;
 import com.kelwin.personaldev.presentation.dto.goal.GoalCreateRequest;
 import com.kelwin.personaldev.presentation.dto.goal.GoalResponse;
+import com.kelwin.personaldev.presentation.exception.BusinessRuleException;
 import com.kelwin.personaldev.presentation.exception.ResourceNotFoundException;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -19,9 +23,15 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class GoalServiceTest {
@@ -31,6 +41,12 @@ class GoalServiceTest {
 
     private static final UUID GOAL_ID =
             UUID.fromString("22222222-2222-2222-2222-222222222222");
+
+    private static final UUID CHILD_GOAL_ID =
+            UUID.fromString("33333333-3333-3333-3333-333333333333");
+
+    private static final UUID OTHER_USER_ID =
+            UUID.fromString("44444444-4444-4444-4444-444444444444");
 
     @Mock
     private GoalRepository goalRepository;
@@ -47,7 +63,7 @@ class GoalServiceTest {
         GoalCreateRequest request = createGoalRequest();
         Goal goal = createGoal(user);
 
-        when(userRepository.findById(request.userId()))
+        when(userRepository.findById(USER_ID))
                 .thenReturn(Optional.of(user));
 
         when(goalRepository.save(any(Goal.class)))
@@ -61,6 +77,9 @@ class GoalServiceTest {
         assertEquals("Aprender Java", response.title());
         assertEquals(GoalStatus.ACTIVE, response.status());
         assertEquals(1, response.priority());
+        assertEquals(GoalDeadlineType.FLEXIBLE, response.deadlineType());
+        assertNull(response.parentGoalId());
+        assertTrue(response.childGoalIds().isEmpty());
 
         verify(goalRepository).save(any(Goal.class));
     }
@@ -69,11 +88,92 @@ class GoalServiceTest {
     void shouldNotCreateGoalWhenUserDoesNotExist() {
         GoalCreateRequest request = createGoalRequest();
 
-        when(userRepository.findById(request.userId()))
+        when(userRepository.findById(USER_ID))
                 .thenReturn(Optional.empty());
 
         assertThrows(
                 ResourceNotFoundException.class,
+                () -> goalService.create(request)
+        );
+
+        verify(goalRepository, never()).save(any(Goal.class));
+    }
+
+    @Test
+    void shouldCreateGoalWithParent() {
+        User user = createUser();
+        Goal parent = createGoal(user);
+
+        GoalCreateRequest request = new GoalCreateRequest(
+                "Aprender Spring Boot",
+                "Criar APIs REST",
+                GoalStatus.ACTIVE,
+                2,
+                LocalDate.of(2026, 12, 1),
+                GoalDeadlineType.FIXED,
+                GOAL_ID,
+                USER_ID
+        );
+
+        Goal child = Goal.builder()
+                .id(CHILD_GOAL_ID)
+                .user(user)
+                .title("Aprender Spring Boot")
+                .description("Criar APIs REST")
+                .status(GoalStatus.ACTIVE)
+                .priority(2)
+                .deadline(LocalDate.of(2026, 12, 1))
+                .deadlineType(GoalDeadlineType.FIXED)
+                .parentGoal(parent)
+                .build();
+
+        when(userRepository.findById(USER_ID))
+                .thenReturn(Optional.of(user));
+
+        when(goalRepository.findById(GOAL_ID))
+                .thenReturn(Optional.of(parent));
+
+        when(goalRepository.save(any(Goal.class)))
+                .thenReturn(child);
+
+        GoalResponse response = goalService.create(request);
+
+        assertEquals(CHILD_GOAL_ID, response.id());
+        assertEquals(GOAL_ID, response.parentGoalId());
+        assertEquals(GoalDeadlineType.FIXED, response.deadlineType());
+    }
+
+    @Test
+    void shouldRejectParentGoalFromAnotherUser() {
+        User user = createUser();
+
+        User otherUser = User.builder()
+                .id(OTHER_USER_ID)
+                .name("Outro usuário")
+                .email("outro@example.com")
+                .build();
+
+        Goal parent = createGoal(otherUser);
+
+        GoalCreateRequest request = new GoalCreateRequest(
+                "Aprender Spring Boot",
+                "Criar APIs REST",
+                GoalStatus.ACTIVE,
+                2,
+                null,
+                GoalDeadlineType.FLEXIBLE,
+                GOAL_ID,
+                USER_ID
+        );
+
+        when(userRepository.findById(USER_ID))
+                .thenReturn(Optional.of(user));
+
+        when(goalRepository.findById(GOAL_ID))
+                .thenReturn(Optional.of(parent));
+
+        assertThrows(
+                BusinessRuleException.class,
                 () -> goalService.create(request)
         );
 
@@ -94,6 +194,10 @@ class GoalServiceTest {
         assertEquals(goal.getId(), response.getFirst().id());
         assertEquals(goal.getTitle(), response.getFirst().title());
         assertEquals(goal.getUser().getId(), response.getFirst().userId());
+        assertEquals(GoalDeadlineType.FLEXIBLE,
+                response.getFirst().deadlineType());
+        assertNull(response.getFirst().parentGoalId());
+        assertTrue(response.getFirst().childGoalIds().isEmpty());
     }
 
     @Test
@@ -109,6 +213,7 @@ class GoalServiceTest {
         assertEquals(goal.getId(), response.id());
         assertEquals(goal.getTitle(), response.title());
         assertEquals(goal.getUser().getId(), response.userId());
+        assertEquals(GoalDeadlineType.FLEXIBLE, response.deadlineType());
     }
 
     @Test
@@ -133,6 +238,8 @@ class GoalServiceTest {
                 GoalStatus.COMPLETED,
                 5,
                 LocalDate.of(2026, 12, 1),
+                GoalDeadlineType.FIXED,
+                null,
                 USER_ID
         );
 
@@ -151,13 +258,53 @@ class GoalServiceTest {
         assertEquals("Nova descrição", response.description());
         assertEquals(GoalStatus.COMPLETED, response.status());
         assertEquals(5, response.priority());
-        assertEquals(
-                LocalDate.of(2026, 12, 1),
-                response.deadline()
-        );
+        assertEquals(LocalDate.of(2026, 12, 1), response.deadline());
+        assertEquals(GoalDeadlineType.FIXED, response.deadlineType());
+        assertNull(response.parentGoalId());
 
         verify(goalRepository).findById(GOAL_ID);
         verify(goalRepository).save(goal);
+    }
+
+    @Test
+    void shouldRejectUpdateThatCreatesHierarchyCycle() {
+        User user = createUser();
+
+        Goal parent = createGoal(user);
+
+        Goal child = Goal.builder()
+                .id(CHILD_GOAL_ID)
+                .user(user)
+                .title("Objetivo filho")
+                .description("Filho do objetivo principal")
+                .status(GoalStatus.ACTIVE)
+                .priority(2)
+                .parentGoal(parent)
+                .build();
+
+        GoalCreateRequest request = new GoalCreateRequest(
+                "Aprender Java",
+                "Estudar Java avançado",
+                GoalStatus.ACTIVE,
+                1,
+                null,
+                GoalDeadlineType.FLEXIBLE,
+                CHILD_GOAL_ID,
+                USER_ID
+        );
+
+        when(goalRepository.findById(GOAL_ID))
+                .thenReturn(Optional.of(parent));
+
+        when(goalRepository.findById(CHILD_GOAL_ID))
+                .thenReturn(Optional.of(child));
+
+        assertThrows(
+                BusinessRuleException.class,
+                () -> goalService.update(GOAL_ID, request)
+        );
+
+        verify(goalRepository, never()).save(any(Goal.class));
     }
 
     @Test
@@ -177,7 +324,7 @@ class GoalServiceTest {
     }
 
     @Test
-    void shouldDeleteGoal() {
+    void shouldDeleteGoalWithoutChildren() {
         User user = createUser();
         Goal goal = createGoal(user);
 
@@ -188,6 +335,40 @@ class GoalServiceTest {
 
         verify(goalRepository).findById(GOAL_ID);
         verify(goalRepository).delete(goal);
+    }
+
+    @Test
+    void shouldRejectDeletingGoalWithChildren() {
+        User user = createUser();
+
+        Goal child = Goal.builder()
+                .id(CHILD_GOAL_ID)
+                .user(user)
+                .title("Objetivo filho")
+                .description("Filho do objetivo principal")
+                .status(GoalStatus.ACTIVE)
+                .priority(2)
+                .build();
+
+        Goal parent = Goal.builder()
+                .id(GOAL_ID)
+                .user(user)
+                .title("Objetivo principal")
+                .description("Agrupa outros objetivos")
+                .status(GoalStatus.ACTIVE)
+                .priority(1)
+                .childGoals(List.of(child))
+                .build();
+
+        when(goalRepository.findById(GOAL_ID))
+                .thenReturn(Optional.of(parent));
+
+        assertThrows(
+                BusinessRuleException.class,
+                () -> goalService.delete(GOAL_ID)
+        );
+
+        verify(goalRepository, never()).delete(any(Goal.class));
     }
 
     @Test
@@ -218,6 +399,8 @@ class GoalServiceTest {
                 "Estudar Java avançado",
                 GoalStatus.ACTIVE,
                 1,
+                null,
+                null,
                 null,
                 USER_ID
         );
