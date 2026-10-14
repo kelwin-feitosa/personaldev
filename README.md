@@ -1,478 +1,203 @@
 # PersonalDev
 
-Aplicação pessoal para organização de objetivos, atividades, desenvolvimento de hábitos de estudo e gerenciamento de conhecimento.
+O **PersonalDev** é uma aplicação em desenvolvimento para ajudar pessoas a **transformar intenções em ações pequenas e concretas, começar tarefas adiadas e retomá-las após interrupções**.
 
-O PersonalDev também funciona como um projeto prático de Engenharia de Software, permitindo aplicar conceitos de desenvolvimento backend, modelagem de domínio, bancos de dados relacionais, testes automatizados, integração contínua e, futuramente, estatística e Machine Learning.
+Em vez de tentar ser um gerenciador completo de produtividade, o primeiro MVP será um **assistente de ação e retomada**: simples, com poucos campos e sem punições por adiamentos.
 
-## 🎯 Objetivo
+> **Estado atual — reconstrução do MVP:** o domínio antigo e suas migrações foram removidos da branch `master`. A infraestrutura do projeto foi mantida, mas **as entidades, serviços, endpoints e a nova migração do MVP ainda não foram implementados**.
 
-O PersonalDev busca ajudar o usuário a:
+## 🎯 Objetivo e proposta
 
-- Organizar objetivos e atividades pessoais.
-- Definir prioridades e acompanhar prazos.
-- Registrar o que pretende fazer e o que realmente realizou.
-- Comparar o planejamento com o tempo efetivamente utilizado.
-- Gerenciar conhecimentos e materiais de estudo.
-- Revisar conhecimentos de forma adaptativa.
-- Construir um histórico de utilização que permita melhorar futuras recomendações.
-
-O desenvolvimento segue uma abordagem incremental: primeiro são implementadas regras determinísticas e funcionalidades confiáveis; posteriormente, dados reais poderão ser utilizados para desenvolver mecanismos mais inteligentes de recomendação.
-
-## 🧠 Conceito
-
-O sistema possui dois fluxos principais.
-
-### Gestão de atividades
+A experiência central planejada é:
 
 ```text
-Objetivos
-    ↓
-Atividades
-    ↓
-Planejamento e priorização
-    ↓
-Execução
-    ↓
-Registro do tempo e dos resultados
-    ↓
-Histórico de utilização
-    ↓
-Recomendações futuras
+Algo que quero fazer
+         ↓
+Escolho a próxima ação concreta
+         ↓
+Defino uma situação em que vou começar
+         ↓
+Registro que comecei
+         ↓
+Concluo a pequena ação ou adio
+         ↓
+Se necessário, crio outro plano e retomo
 ```
 
-### Gestão de conhecimento
+Exemplo: a tarefa é **estudar Java**; a próxima ação é **resolver o primeiro exercício sobre listas**; a situação de início é **depois do almoço**. Se a ação for adiada, o histórico permanece e a pessoa pode criar um novo plano.
+
+**Concluir uma pequena ação não conclui automaticamente a tarefa maior.** O PersonalDev não é uma ferramenta clínica e não promete eliminar ou tratar a procrastinação. A utilidade das funcionalidades será avaliada com usuários.
+
+## ✅ Escopo do MVP
+
+Funcionalidades **planejadas**:
+
+- Criar, listar, consultar e concluir explicitamente tarefas.
+- Definir uma **próxima ação executável** vinculada a uma tarefa.
+- Informar um **gatilho de início** em linguagem simples, como “agora” ou “depois do almoço”.
+- Registrar opcionalmente um obstáculo previsto.
+- Registrar início, conclusão ou adiamento de cada plano.
+- Retomar criando um novo plano, preservando o histórico anterior.
+- Consultar planos e histórico de uma tarefa numa interface simples e adequada para celular.
+
+**Fora do MVP:** hierarquia de objetivos, gerenciador detalhado de tempo, Pomodoro obrigatório, notificações, streaks, gamificação, dashboard complexo, gestão de conhecimentos, revisão espaçada, IA generativa e Machine Learning. Essas possibilidades só serão reconsideradas se houver valor demonstrável.
+
+## 🧠 Domínio planejado
+
+O domínio começará com dois conceitos:
+
+### `Task`
+
+Uma tarefa ampla que pode precisar de várias ações pequenas. Possui um título e estado `OPEN` ou `DONE`; sua conclusão é explícita.
+
+### `StartPlan`
+
+Um plano para executar uma próxima ação associada à tarefa. Campos inicialmente propostos:
+
+- `nextAction`: ação concreta obrigatória.
+- `startCue`: situação em que a pessoa pretende começar.
+- `obstacle`: obstáculo previsto, opcional.
+- `status`: `PLANNED`, `STARTED`, `COMPLETED` ou `POSTPONED`.
+- Horários relevantes para criação e transições.
+
+Transições previstas:
 
 ```text
-Conhecimento
-    ↓
-Revisão
-    ↓
-Avaliação de desempenho
-    ↓
-Atualização do intervalo de revisão
-    ↓
-Próxima revisão
-    ↓
-Histórico de aprendizagem
+PLANNED ──iniciar──> STARTED ──concluir──> COMPLETED
+   │                     │
+   └──adiar──> POSTPONED <──adiar──────────┘
 ```
 
-Atividades e conhecimentos são conceitos distintos. Uma atividade representa uma ação que o usuário pretende realizar; um conhecimento representa algo aprendido que se deseja preservar ao longo do tempo.
+Não será permitido concluir antes de começar. `COMPLETED` e `POSTPONED` encerram aquele plano; a retomada cria outro `StartPlan`. Essas regras serão implementadas e testadas primeiro em Java puro, antes da persistência.
 
 ## 🏗️ Arquitetura
 
-O backend é organizado em três camadas principais:
+O backend será um **monólito Spring Boot** com separação simples de responsabilidades:
 
 - **Domain:** entidades, enums e interfaces de repositório.
-- **Application:** serviços que coordenam os casos de uso e aplicam regras de negócio.
-- **Presentation:** controllers REST, DTOs, validação de entrada e tratamento de exceções.
+- **Application:** serviços e casos de uso.
+- **Presentation:** controllers REST, DTOs, validação e tratamento de erros.
 
-Estrutura principal:
-
-```text
-src/
-├── main/
-│   ├── java/com/kelwin/personaldev/
-│   │   ├── domain/
-│   │   │   ├── model/enums/
-│   │   │   └── repository/
-│   │   ├── application/
-│   │   │   └── service/
-│   │   └── presentation/
-│   │       ├── controller/
-│   │       ├── dto/
-│   │       └── exception/
-│   └── resources/
-│       ├── db/migration/
-│       ├── application.properties
-│       └── application-dev.properties
-└── test/
-    └── java/com/kelwin/personaldev/
-```
-
-A estrutura poderá evoluir conforme novas necessidades surgirem, sem introduzir complexidade arquitetural desnecessária.
-
-## 📦 Modelo de domínio
-
-O núcleo atual da aplicação inclui:
+Estrutura-alvo, **ainda não totalmente existente**:
 
 ```text
-User
-├── Goal
-│   ├── Goal
-│   │   └── Goal...
-│   └── Activity
-│       └── ActivityExecution...
-├── Knowledge
-│   └── KnowledgeReview...
-└── UserState (planejado)
+src/main/java/com/kelwin/personaldev/
+├── PersonaldevApplication.java
+├── domain/
+│   ├── model/
+│   │   ├── Task.java
+│   │   ├── StartPlan.java
+│   │   └── enums/
+│   │       ├── TaskStatus.java
+│   │       └── StartPlanStatus.java
+│   └── repository/
+│       ├── TaskRepository.java
+│       └── StartPlanRepository.java
+├── application/service/
+│   ├── TaskService.java
+│   └── StartPlanService.java
+└── presentation/
+    ├── controller/
+    ├── dto/
+    └── exception/
 ```
 
-As reticências representam a possibilidade de múltiplas entidades relacionadas. A hierarquia de `Goal` permite objetivos independentes, objetivos-pai e objetivos-filhos em diferentes níveis.
-
-### User
-
-Representa o usuário da aplicação, incluindo informações de identificação e criação.
-
-### Goal
-
-Representa um objetivo que o usuário deseja alcançar.
-
-Principais características:
-
-- Título e descrição.
-- Status e prioridade.
-- Prazo opcional.
-- Tipo de prazo: fixo (`FIXED`) ou flexível (`FLEXIBLE`).
-- Relacionamento opcional com um objetivo-pai.
-- Relacionamento com objetivos-filhos.
-- Associação com atividades.
-
-As regras de negócio impedem ciclos na hierarquia, restringem o relacionamento pai-filho a objetivos do mesmo usuário e protegem contra a exclusão de objetivos que ainda possuem filhos.
-
-O prazo flexível representa uma data que pode ser ajustada pelo usuário; o prazo fixo representa uma data que deve ser tratada como uma restrição mais rígida.
-
-### Activity
-
-Representa uma ação que o usuário pretende realizar, associada ou não a um objetivo.
-
-Entre suas características estão:
-
-- Título e descrição.
-- Duração estimada.
-- Dificuldade e prioridade.
-- Status da atividade.
-- Prazo e demais informações de planejamento previstas no modelo.
-
-Uma atividade pode existir independentemente de um objetivo. Quando existe uma associação, o sistema valida se o objetivo pertence ao mesmo usuário.
-
-### ActivityExecution
-
-Registra uma execução real de uma atividade. Uma atividade pode possuir várias execuções, permitindo comparar estimativas com o tempo efetivamente gasto.
-
-Exemplo:
-
-```text
-Activity: Estudar Spring Security
-Duração estimada: 180 minutos
-
-├── Execução 1: 60 minutos
-├── Execução 2: 70 minutos
-└── Execução 3: 50 minutos
-```
-
-O histórico de execuções fornece dados para acompanhar o progresso e, futuramente, melhorar as estimativas de duração.
-
-### Knowledge
-
-Representa um conhecimento que o usuário aprendeu e deseja manter.
-
-O modelo permite gerenciar conhecimentos independentemente das atividades, favorecendo revisões recorrentes e a futura organização de relações entre conhecimentos e materiais de estudo.
-
-### KnowledgeReview
-
-Registra uma revisão de conhecimento e seu desempenho.
-
-O sistema possui uma estrutura inicial de revisão adaptativa, incluindo o agendamento da próxima revisão e o intervalo entre revisões. A evolução desse mecanismo poderá considerar o histórico de desempenho para ajustar a frequência de revisão.
-
-### UserState
-
-Funcionalidade planejada para representar o contexto atual do usuário, como tempo disponível, energia, motivação e foco.
-
-Essas informações poderão apoiar um futuro sistema de recomendação de atividades.
+Os pacotes e arquivos serão criados conforme cada etapa for implementada, sem introduzir complexidade antecipadamente.
 
 ## 🛠️ Tecnologias
 
-### Backend
+| Área | Ferramentas disponíveis no projeto |
+| --- | --- |
+| Backend | Java 21, Spring Boot 4.1.1, Spring Web MVC |
+| Persistência | PostgreSQL, Spring Data JPA, Hibernate, Flyway |
+| Ambiente | Docker, Docker Compose, Maven Wrapper |
+| Testes | JUnit, Mockito, Spring Boot Test, MockMvc |
+| API | Bean Validation, OpenAPI/Swagger UI |
+| Integração contínua | GitHub Actions |
 
-- Java 21
-- Spring Boot 4.1.1
-- Spring Web MVC
-- Spring Data JPA
-- Bean Validation
-- Lombok
+> A presença de dependências no `pom.xml` não significa que as funcionalidades correspondentes já foram implementadas.
 
-### Banco de dados e persistência
+## 💻 Ambiente local
 
-- PostgreSQL
-- Docker
-- Docker Compose
-- Flyway
-- Hibernate
+### Pré-requisitos
 
-### Testes e qualidade
+- JDK 21
+- Docker e Docker Compose
+- Git
 
-- JUnit 5
-- Mockito
-- Spring Boot Test
-- MockMvc
-- JaCoCo e ferramentas de análise de qualidade, conforme configuradas no projeto
+### Preparar o projeto
 
-### Documentação e ferramentas
+```bash
+git clone https://github.com/kelwin-feitosa/personaldev.git
+cd personaldev
+cp .env.example .env
+```
 
-- OpenAPI
-- Swagger UI
-- Maven
-- Git e GitHub
-- GitHub Actions
+Exemplo de valores para um **ambiente local descartável**:
 
-### Tecnologias futuras
-
-- React para a interface web.
-- Estatística aplicada ao histórico de utilização.
-- Machine Learning, quando houver dados suficientes e uma necessidade concreta.
-
-## 🗄️ Banco de dados e migrações
-
-O PostgreSQL é executado por meio do Docker Compose. A aplicação utiliza variáveis de ambiente para configurar a conexão com o banco.
-
-Exemplo de `.env`:
-
-```env
+```dotenv
 DB_NAME=personaldev
 DB_USERNAME=postgres
 DB_PASSWORD=postgres
 DB_PORT=5434
 ```
 
-O banco utiliza a porta `5434` no host para evitar conflitos com outros bancos PostgreSQL locais. Dentro do container, a porta padrão é `5432`.
+O `.env` deve permanecer fora do versionamento. O `docker-compose.yml` mapeia a porta **5434** do host para a **5432** do container do PostgreSQL.
 
-O arquivo `.env` não deve ser versionado. O repositório disponibiliza um `.env.example` para orientar a configuração de novos ambientes.
+### Iniciar o banco
 
-### Flyway
-
-As migrações estão localizadas em:
-
-```text
-src/main/resources/db/migration/
+```bash
+docker compose up -d --wait
 ```
 
-As migrations versionadas controlam a evolução do esquema do banco. Novas alterações devem ser adicionadas em novas migrations, sem modificar migrations que já foram aplicadas em ambientes existentes.
+**Atenção:** o domínio anterior foi excluído, e a nova migração `V1` ainda precisa ser criada. O banco pode iniciar, mas isso não disponibiliza as funcionalidades planejadas.
 
-O Hibernate utiliza:
+### Iniciar o Spring Boot
 
-```properties
-spring.jpa.hibernate.ddl-auto=validate
+```bash
+SPRING_PROFILES_ACTIVE=dev ./mvnw spring-boot:run
 ```
 
-Assim, o Hibernate verifica a compatibilidade entre as entidades e o esquema existente, enquanto o Flyway é responsável pela evolução do banco de dados.
+O Hibernate usa `spring.jpa.hibernate.ddl-auto=validate`. O Flyway será responsável pelo esquema da nova aplicação, começando por `V1__create_tasks_and_start_plans.sql`.
 
-## 📖 API REST
-
-A aplicação disponibiliza recursos REST para os principais componentes do domínio:
-
-- Usuários (`User`).
-- Objetivos (`Goal`).
-- Atividades (`Activity`).
-- Execuções de atividades (`ActivityExecution`).
-- Conhecimentos (`Knowledge`).
-- Revisões de conhecimento (`KnowledgeReview`).
-
-A documentação interativa é disponibilizada pelo Swagger UI.
-
-Com a aplicação em execução:
-
-- Swagger UI: `http://localhost:8080/swagger-ui.html`
-- OpenAPI: `http://localhost:8080/v3/api-docs`
-
-Os endpoints, parâmetros e formatos de requisição devem ser consultados na documentação gerada pela própria aplicação.
-
-## ⚠️ Validação e tratamento de erros
-
-O projeto utiliza Bean Validation, com anotações como `@NotBlank`, `@NotNull`, `@Email` e `@Positive`, conforme as regras de cada DTO.
-
-O tratamento global de exceções contempla categorias como:
-
-- Recursos inexistentes: `404 Not Found`.
-- Recursos duplicados: `409 Conflict`.
-- Violações de regras de negócio: `400 Bad Request`.
-- Erros de validação: `400 Bad Request`.
-- Erros inesperados: `500 Internal Server Error`.
-
-As regras de negócio são aplicadas na camada de serviços, evitando depender exclusivamente da validação das requisições.
-
-## 🧪 Testes automatizados
-
-Os testes são desenvolvidos junto com as funcionalidades.
-
-A estrutura de testes contempla as camadas de serviço e apresentação, incluindo testes para os principais recursos do domínio.
-
-### Testes de serviços
-
-Verificam comportamentos como:
-
-- Criação, consulta, atualização e exclusão.
-- Tratamento de recursos inexistentes e duplicados.
-- Validação de relacionamentos entre entidades.
-- Aplicação de regras de negócio.
-- Restrições da hierarquia de objetivos.
-
-### Testes de controllers
-
-Utilizam MockMvc para verificar:
-
-- Requisições HTTP.
-- Status HTTP.
-- Estrutura do JSON de resposta.
-- Validação das requisições.
-- Tratamento de exceções.
-
-Para executar os testes:
+### Testar
 
 ```bash
 ./mvnw test
-```
-
-Para executar o ciclo de verificação do projeto:
-
-```bash
 ./mvnw verify
 ```
 
-## 🔄 Integração contínua
+Os testes com o profile `test` esperam um PostgreSQL local na porta **5434**; disponibilize a configuração adequada para executar a suíte completa. O CI permanece configurado para `master` e executa `./mvnw verify` com um PostgreSQL iniciado pelo Docker Compose.
 
-O projeto utiliza GitHub Actions para executar verificações automatizadas em eventos configurados no repositório, incluindo pushes e pull requests direcionados à branch `master`.
+### API e Swagger
 
-O pipeline contempla:
-
-1. Checkout do repositório.
-2. Configuração do JDK 21.
-3. Cache de dependências do Maven.
-4. Inicialização do PostgreSQL via Docker Compose.
-5. Ativação do profile de teste.
-6. Execução de `./mvnw verify`.
-7. Encerramento dos containers ao final da execução.
-
-O objetivo é detectar regressões e validar a integração entre código, banco de dados e testes antes de considerar uma alteração concluída.
-
-## 🚀 Como executar
-
-### 1. Clonar o repositório
-
-```bash
-git clone https://github.com/kelwin-feitosa/personaldev.git
-cd personaldev
-```
-
-### 2. Configurar as variáveis de ambiente
-
-```bash
-cp .env.example .env
-```
-
-Preencha o arquivo `.env` com os valores adequados ao ambiente local.
-
-### 3. Iniciar o PostgreSQL
-
-```bash
-docker compose up -d
-```
-
-### 4. Executar a aplicação
-
-Linux/macOS:
-
-```bash
-./mvnw spring-boot:run
-```
-
-Windows:
-
-```bat
-mvnw.cmd spring-boot:run
-```
-
-Durante a inicialização, o Flyway executa as migrações pendentes e o Hibernate valida o esquema do banco.
+As dependências de OpenAPI/Swagger permanecem no projeto. **Ainda não existem endpoints do novo domínio**. Quando forem implementados, a documentação poderá ser consultada em `http://localhost:8080/swagger-ui.html` e `http://localhost:8080/v3/api-docs`.
 
 ## 🗺️ Roadmap
 
-### Etapa 1 — Estrutura e persistência
+- [x] Preparar Spring Boot, Maven Wrapper, PostgreSQL, Docker Compose e CI.
+- [x] Remover entidades, controllers, services, DTOs, testes acoplados e migrations do domínio antigo.
+- [ ] Implementar `TaskStatus`, `StartPlanStatus`, `Task` e `StartPlan`.
+- [ ] Criar testes de domínio para validação e transições de estados.
+- [ ] Criar migration `V1` e mapear entidades com JPA.
+- [ ] Implementar repositories e testes de persistência.
+- [ ] Implementar serviços de tarefas, início, conclusão, adiamento e retomada.
+- [ ] Criar endpoints REST, DTOs e testes de controllers.
+- [ ] Construir uma interface web responsiva e simples.
+- [ ] Testar usabilidade com participantes e dados fictícios.
+- [ ] Implementar autenticação, autorização e isolamento de dados antes de disponibilizar o sistema para múltiplos usuários reais.
+- [ ] Avaliar hospedagem e evolução do produto com base no uso observado.
 
-- [x] Configuração inicial do projeto.
-- [x] PostgreSQL e Docker Compose.
-- [x] Variáveis de ambiente e profiles.
-- [x] Flyway e migrações versionadas.
-- [x] Entidades e repositórios principais.
-- [x] Serviços e DTOs.
-- [x] Controllers REST.
-- [x] Validações e tratamento global de exceções.
-- [x] Testes de serviços e controllers.
-- [x] Documentação OpenAPI/Swagger.
-- [x] Integração contínua.
-- [x] Hierarquia de objetivos.
-- [x] Tipos de prazo fixo e flexível.
+## 📌 Princípios do projeto
 
-### Etapa 2 — Acompanhamento e aprendizagem
+1. **Resolver um problema específico:** tornar mais fácil começar e retomar.
+2. **Manter o MVP enxuto:** evitar funcionalidades não validadas.
+3. **Preservar histórico:** adiar não apaga tentativas anteriores.
+4. **Testar regras de negócio:** não confundir código compilando com comportamento correto.
+5. **Priorizar aprendizado:** implementação consciente, com entendimento e revisão.
+6. **Evitar promessas sem evidência:** a eficácia do app ainda não foi demonstrada.
+7. **Proteger dados:** até existir segurança adequada, utilizar somente ambiente local ou protótipos com dados fictícios.
 
-- [x] Registro de execuções de atividades.
-- [x] Histórico de execuções.
-- [x] Gerenciamento de conhecimentos.
-- [x] Registro de revisões.
-- [x] Estrutura inicial de revisão adaptativa.
-- [ ] Evoluir os critérios de adaptação dos intervalos.
-- [ ] Ampliar as relações entre conhecimentos e materiais de estudo.
-- [ ] Implementar o modelo de contexto do usuário (`UserState`).
+---
 
-### Etapa 3 — Recomendações
-
-Inicialmente, as recomendações deverão utilizar regras determinísticas, considerando fatores como:
-
-- Prioridade e prazo.
-- Duração estimada.
-- Tempo disponível.
-- Contexto atual do usuário.
-- Histórico de execuções.
-- Necessidade de revisão de conhecimentos.
-
-A evolução pretendida é:
-
-```text
-Regras determinísticas
-        ↓
-Coleta de dados reais
-        ↓
-Análise estatística
-        ↓
-Modelos adaptativos
-        ↓
-Machine Learning, se justificado
-```
-
-O objetivo é evitar a introdução de modelos complexos antes de existir uma base de dados adequada e uma necessidade demonstrável.
-
-### Etapa 4 — Interface web
-
-- [ ] Desenvolver a interface com React.
-- [ ] Criar dashboard de objetivos e atividades.
-- [ ] Disponibilizar registro e consulta de execuções.
-- [ ] Criar telas para conhecimentos e revisões.
-- [ ] Apresentar histórico e indicadores de progresso.
-- [ ] Integrar as recomendações à interface.
-
-## 📚 Objetivos de aprendizado
-
-O PersonalDev também é um ambiente de prática para aprofundar conhecimentos em:
-
-- Modelagem de domínio e regras de negócio.
-- Arquitetura de aplicações.
-- APIs REST.
-- Persistência com JPA e Hibernate.
-- Bancos de dados relacionais.
-- Migrações de esquema.
-- Validação e tratamento de erros.
-- Testes automatizados.
-- Integração contínua.
-- Qualidade e manutenção de código.
-- Análise estatística de dados.
-- Sistemas de recomendação e Machine Learning.
-
-A complexidade será adicionada gradualmente, priorizando soluções compreensíveis, testáveis e justificadas por necessidades reais.
-
-## 📌 Status do projeto
-
-**Em desenvolvimento — evolução do backend e das funcionalidades de acompanhamento e aprendizagem.**
-
-O projeto já possui uma base de backend com persistência em PostgreSQL, migrações Flyway, entidades de domínio, serviços, endpoints REST, validações, testes automatizados e integração contínua.
-
-Também contempla hierarquia de objetivos, prazos fixos e flexíveis, registro de execuções de atividades e um mecanismo inicial de revisão adaptativa de conhecimentos.
-
-As próximas etapas concentram-se em amadurecer as regras de negócio, melhorar o acompanhamento do progresso, desenvolver o contexto do usuário e construir uma base sólida para futuras recomendações personalizadas.
+**Status:** infraestrutura mantida na `master`, legado funcional removido e novo MVP ainda em implementação. **Próxima entrega:** domínio Java de `Task` e `StartPlan`, com testes automatizados.
